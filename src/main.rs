@@ -5,6 +5,7 @@ use std::path;
 extern crate getopts;
 use getopts::Options;
 
+mod lib;
 mod utils;
 
 static PROJECT_DIR: &str = "~/.minici";
@@ -22,6 +23,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     // let program = args[0].clone();
     let mut opts = Options::new();
+
     {
         opts.optflag("h", "help", "");
         opts.optflag("v", "version", "");
@@ -38,9 +40,6 @@ fn main() {
             return;
         }
     }
-
-    // println!("{:?}", &args);
-    // println!("{:?}", &program);
 
     match &args.get(1).map(String::as_ref) {
         Some("init") => {
