@@ -1,0 +1,13 @@
+[package]
+name = "minici"
+version = "0.1.0"
+edition = "2018"
+authors = [
+    "Oguzhan Ozdemir <oguzhan.ozdemir@thundra.io"
+]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+colored = "2"
+getopts = "0.2.21"
