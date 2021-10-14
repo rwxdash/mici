@@ -5,7 +5,7 @@ extern crate colored;
 use colored::*;
 
 pub fn check_project() {
-    if path::Path::new(PROJECT_DIR).exists() {
+    if path::Path::new(&project_folder()).exists() {
         println!(
             "{} {}",
             "Found existing minici setup at".cyan(),
@@ -17,4 +17,14 @@ pub fn check_project() {
         println!("{}", "Populating from the repository...".yellow());
         println!("{}", "Done!".green());
     }
+}
+
+pub fn project_folder() -> String {
+    let home_dir: &str = &dirs::home_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap()[..];
+
+    format!("{}/{}", home_dir, PROJECT_DIR)
 }

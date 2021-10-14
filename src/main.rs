@@ -1,61 +1,34 @@
 use std::env;
-use std::path;
-// use std::process;
 
 use crate::lib::maintenance::init_command::INIT_COMMAND;
+use crate::utils::checks::check_help_and_version;
 
+extern crate dirs;
 extern crate getopts;
 use getopts::Options;
 
 pub mod lib;
 pub mod utils;
 
-static PROJECT_DIR: &str = "~/.minici";
+static PROJECT_DIR: &str = ".minici";
 
 fn main() {
-    println!(
-        "project dir exists? : {}",
-        path::Path::new(PROJECT_DIR).exists()
-    );
-
-    INIT_COMMAND.run();
-
-    // utils::fs::check_project();
-
     let args: Vec<String> = env::args().collect();
-    // let program = args[0].clone();
+    check_help_and_version(&args);
+
     let mut opts = Options::new();
-
-    {
-        opts.optflag("h", "help", "");
-        opts.optflag("v", "version", "");
-        let matches = match opts.parse(&args[1..]) {
-            Ok(m) => m,
-            Err(_) => return,
-        };
-        if matches.opt_present("version") {
-            println!("version 1");
-        }
-
-        if matches.opt_present("help") {
-            println!("caught help at {:?}", matches.opt_positions("help"));
-            return;
-        }
-    }
 
     match &args.get(1).map(String::as_ref) {
         Some("init") => {
-            // run init
             opts.optflag("", "clean", "Do a clean setup for ~/.minici");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
                 Err(_) => return,
             };
-            if matches.opt_present("clean") {
-                // clean setup
-            } else {
-                // check if it's already present. if so, ignore
-            }
+
+            match INIT_COMMAND.run(matches.opt_present("clean")) {
+                Ok(()) | Err(_) => return,
+            };
         }
         Some("seed") => {
             // run seed
