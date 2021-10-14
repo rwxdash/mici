@@ -2,15 +2,15 @@ use std::env;
 use std::path;
 // use std::process;
 
+use crate::lib::maintenance::init_command::INIT_COMMAND;
+
 extern crate getopts;
 use getopts::Options;
 
-mod lib;
-mod utils;
+pub mod lib;
+pub mod utils;
 
 static PROJECT_DIR: &str = "~/.minici";
-
-// fn check_help()
 
 fn main() {
     println!(
@@ -18,7 +18,9 @@ fn main() {
         path::Path::new(PROJECT_DIR).exists()
     );
 
-    utils::fs::check_project(PROJECT_DIR);
+    INIT_COMMAND.run();
+
+    // utils::fs::check_project();
 
     let args: Vec<String> = env::args().collect();
     // let program = args[0].clone();
