@@ -5,7 +5,7 @@ extern crate dirs;
 extern crate getopts;
 
 use crate::lib::maintenance::init_command::INIT_COMMAND;
-use crate::utils::checks::check_help_and_version;
+use crate::utils::checks::catch_help_and_version_commands;
 use colored::Colorize;
 use getopts::Options;
 use std::env;
@@ -14,7 +14,7 @@ static PROJECT_DIR: &str = ".minici";
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    check_help_and_version(&args);
+    catch_help_and_version_commands(&args);
 
     let mut opts = Options::new();
 

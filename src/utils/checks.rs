@@ -1,7 +1,7 @@
 use crate::lib::maintenance::init_command::INIT_COMMAND;
 use std::process;
 
-pub fn check_help_and_version(args: &Vec<String>) {
+pub fn catch_help_and_version_commands(args: &Vec<String>) {
     match &args.get(1).map(String::as_ref) {
         Some("-v" | "--version" | "version") => {
             println!("caught version");
