@@ -1,8 +1,8 @@
-use crate::PROJECT_DIR;
-use std::path;
-
 extern crate colored;
+
+use crate::PROJECT_DIR;
 use colored::*;
+use std::path;
 
 pub fn check_project() {
     if path::Path::new(&project_folder()).exists() {

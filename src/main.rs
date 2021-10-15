@@ -1,15 +1,14 @@
-use std::env;
-
-use crate::lib::maintenance::init_command::INIT_COMMAND;
-use crate::utils::checks::check_help_and_version;
+pub mod lib;
+pub mod utils;
 
 extern crate dirs;
 extern crate getopts;
+
+use crate::lib::maintenance::init_command::INIT_COMMAND;
+use crate::utils::checks::check_help_and_version;
 use colored::Colorize;
 use getopts::Options;
-
-pub mod lib;
-pub mod utils;
+use std::env;
 
 static PROJECT_DIR: &str = ".minici";
 

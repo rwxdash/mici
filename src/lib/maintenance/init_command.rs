@@ -1,19 +1,17 @@
+extern crate colored;
+extern crate serde;
+
+use crate::lib::maintenance::base_command::BaseCommand;
+use crate::utils::fs::project_folder;
+use crate::PROJECT_DIR;
+use colored::*;
 use dialoguer::{theme::ColorfulTheme, Input};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
 use std::process;
-
-use crate::lib::maintenance::base_command::BaseCommand;
-use crate::utils::fs::project_folder;
-use crate::PROJECT_DIR;
-
-extern crate colored;
-use colored::*;
-
-extern crate serde;
-use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
 pub struct InitCommand {

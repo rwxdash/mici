@@ -1,11 +1,10 @@
-use std::error::Error;
-use std::path::Path;
-use std::process;
+extern crate colored;
 
 use crate::lib::maintenance::base_command::BaseCommand;
 use crate::utils::fs::project_folder;
-
-extern crate colored;
+use std::error::Error;
+use std::path::Path;
+use std::process;
 
 #[allow(dead_code)]
 pub struct SeedCommand {
