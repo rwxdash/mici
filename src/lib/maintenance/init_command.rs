@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
 pub struct InitCommand {
-    base: BaseCommand,
+    pub base: BaseCommand,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

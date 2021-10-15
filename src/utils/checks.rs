@@ -1,4 +1,3 @@
-// use getopts::Options;
 use std::process;
 
 pub fn check_help_and_version(args: &Vec<String>) {
