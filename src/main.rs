@@ -26,7 +26,7 @@ fn main() {
                 Err(_) => {
                     println!(
                         "> {}\n",
-                        "Couldn't recognize the given command. Try running --help".on_red()
+                        "Couldn't recognize the given command. Try running with --help".on_red()
                     );
                     return;
                 }
