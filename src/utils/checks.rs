@@ -1,22 +1,20 @@
-use getopts::Options;
+// use getopts::Options;
+use std::process;
 
 pub fn check_help_and_version(args: &Vec<String>) {
-    let mut opts = Options::new();
-
-    opts.optflag("h", "help", "");
-    opts.optflag("v", "version", "");
-
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => m,
-        Err(_) => return,
-    };
-
-    if matches.opt_present("version") {
-        println!("version 1");
+    match &args.get(1).map(String::as_ref) {
+        Some("-v" | "--version" | "version") => {
+            println!("caught version");
+            process::exit(0);
+        }
+        _ => {}
     }
 
-    if matches.opt_present("help") {
-        println!("caught help at {:?}", matches.opt_positions("help"));
-        return;
+    match &args.last().map(String::as_ref) {
+        Some("-h" | "--help" | "help") => {
+            println!("caught help");
+            process::exit(0);
+        }
+        _ => {}
     }
 }

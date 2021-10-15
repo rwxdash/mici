@@ -78,7 +78,7 @@ impl InitCommand {
 
             process::exit(1)
         }
-        println!("  {}", "Successfully set up minici!".green());
+        println!("  {}\n", "Successfully set up minici!".green());
 
         return Ok(());
     }

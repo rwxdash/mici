@@ -5,6 +5,7 @@ use crate::utils::checks::check_help_and_version;
 
 extern crate dirs;
 extern crate getopts;
+use colored::Colorize;
 use getopts::Options;
 
 pub mod lib;
@@ -20,10 +21,16 @@ fn main() {
 
     match &args.get(1).map(String::as_ref) {
         Some("init") => {
-            opts.optflag("", "clean", "Do a clean setup for ~/.minici");
+            opts.optflag("", "clean", "");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
-                Err(_) => return,
+                Err(_) => {
+                    println!(
+                        "> {}\n",
+                        "Couldn't recognize the given command. Try running --help".on_red()
+                    );
+                    return;
+                }
             };
 
             match INIT_COMMAND.run(matches.opt_present("clean")) {
@@ -33,12 +40,7 @@ fn main() {
         Some("seed") => {
             // run seed
             let mut branch = String::new();
-            opts.optopt(
-                "b",
-                "branch",
-                "The branch where we populate the seeds from",
-                "-b BRANCH_NAME",
-            );
+            opts.optopt("b", "branch", "", "");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
                 Err(_) => return,
@@ -49,17 +51,6 @@ fn main() {
             }
 
             println!("{}", branch);
-        }
-        Some("update") => {
-            // run update
-        }
-        Some("version") => {
-            // print version
-            println!("version 0.1.0");
-        }
-        Some("help") => {
-            // print help
-            println!("help");
         }
         Some(_) => {
             // check command
