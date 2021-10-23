@@ -2,8 +2,7 @@ extern crate colored;
 extern crate serde;
 
 use crate::lib::maintenance::base_command::BaseCommand;
-use crate::utils::fs::project_folder;
-use crate::PROJECT_DIR;
+use crate::utils::fs::*;
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Input};
 use serde::{Deserialize, Serialize};
@@ -45,14 +44,14 @@ impl InitCommand {
     }
 
     pub fn run(&self, clean: bool) -> Result<(), Box<dyn Error>> {
-        let minici_exist = Path::new(&project_folder()).exists();
+        let minici_exist = Path::new(&get_project_folder()).exists();
 
         if minici_exist {
             println!("> Found existing minici setup");
             if clean {
                 println!("> Doing the cleanup...");
                 println!("  {}", "Removing ~/.minici".bright_yellow());
-                if let Err(e) = fs::remove_dir_all(&project_folder()) {
+                if let Err(e) = fs::remove_dir_all(&get_project_folder()) {
                     println!("  {}", "Error while removing ~/.minici".on_red());
                     println!("  {}", e.to_string().on_red());
                     process::exit(1)
@@ -77,16 +76,12 @@ impl InitCommand {
         }
 
         println!("> Setting up minici...");
-        if let Err(e) = fs::create_dir_all(&project_folder()) {
-            println!(
-                "  {} {}",
-                "Error while creating".bright_red(),
-                &PROJECT_DIR.bright_red()
-            );
-            println!("  {}", e.to_string().on_red());
 
-            process::exit(1)
-        };
+        // ~/.minici
+        create_folder_at(&get_project_folder());
+        create_folder_at(&get_jobs_folder());
+        create_folder_at(&get_commands_folder());
+        create_folder_at(&get_scripts_folder());
 
         let upstream_url: String = Input::with_theme(&ColorfulTheme::default())
             .with_prompt(format!("{}", "Upstream repository URL for your commands",))
@@ -102,19 +97,19 @@ impl InitCommand {
             upstream_url: upstream_url,
             upstream_cmd_path: upstream_cmd_path,
         };
-        let mut config_yaml = fs::File::create(format!("{}/config.yml", &project_folder()))?;
+        let mut config_yaml = fs::File::create(format!("{}/config.yml", &get_project_folder()))?;
         let config_yaml_as_string = serde_yaml::to_string(&init_configuration)?;
         config_yaml.write_all(&config_yaml_as_string.as_bytes())?;
 
         println!(
             "> {} {}",
             "Wrote the given configuration at",
-            &project_folder()
+            &get_project_folder()
         );
         println!(
             "  {} {}{}",
             "You can manually update this configuration at",
-            &project_folder().blue().bold(),
+            &get_project_folder().blue().bold(),
             "/config.yml".blue().bold()
         );
 

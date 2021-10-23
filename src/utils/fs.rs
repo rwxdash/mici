@@ -2,24 +2,10 @@ extern crate colored;
 
 use crate::PROJECT_DIR;
 use colored::*;
-use std::path;
+use std::fs;
+use std::process;
 
-pub fn check_project() {
-    if path::Path::new(&project_folder()).exists() {
-        println!(
-            "{} {}",
-            "Found existing minici setup at".cyan(),
-            PROJECT_DIR.cyan()
-        )
-    } else {
-        println!("{} {}", "Couldn't find minici at", PROJECT_DIR.red());
-        println!("{}", "Initializing basic project structure...".yellow());
-        println!("{}", "Populating from the repository...".yellow());
-        println!("{}", "Done!".green());
-    }
-}
-
-pub fn project_folder() -> String {
+pub fn get_project_folder() -> String {
     let home_dir: &str = &dirs::home_dir()
         .unwrap()
         .into_os_string()
@@ -27,4 +13,47 @@ pub fn project_folder() -> String {
         .unwrap()[..];
 
     format!("{}/{}", home_dir, PROJECT_DIR)
+}
+
+pub fn get_jobs_folder() -> String {
+    let home_dir: &str = &dirs::home_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap()[..];
+
+    format!("{}/{}/jobs", home_dir, PROJECT_DIR)
+}
+
+pub fn get_commands_folder() -> String {
+    let home_dir: &str = &dirs::home_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap()[..];
+
+    format!("{}/{}/jobs/commands", home_dir, PROJECT_DIR)
+}
+
+pub fn get_scripts_folder() -> String {
+    let home_dir: &str = &dirs::home_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap()[..];
+
+    format!("{}/{}/jobs/scripts", home_dir, PROJECT_DIR)
+}
+
+pub fn create_folder_at(path: &str) {
+    if let Err(e) = fs::create_dir_all(&path) {
+        println!(
+            "  {} {}",
+            "Error while creating".bright_red(),
+            &PROJECT_DIR.bright_red()
+        );
+        println!("  {}", e.to_string().on_red());
+
+        process::exit(1)
+    };
 }

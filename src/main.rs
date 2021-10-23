@@ -16,6 +16,10 @@ static PROJECT_DIR: &str = ".minici";
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    // override colorize to successfully pass styles to the pager
+    colored::control::set_override(true);
+
     catch_help_and_version_commands(&args);
 
     let mut opts = Options::new();
