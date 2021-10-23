@@ -8,7 +8,7 @@ use std::process;
 
 #[allow(dead_code)]
 pub struct SeedCommand {
-    base: BaseCommand,
+    pub base: BaseCommand,
 }
 
 impl SeedCommand {
@@ -18,13 +18,13 @@ impl SeedCommand {
                 name: "minici seed",
                 description: "Used for populating the commands",
                 synopsis: "
-                minici seed
-                    [-b, --branch <value>]
+    minici seed
+        [-b, --branch <value>]
                 ",
                 options: "
-                -b, --branch (string)
-                    Will take a string as branch to checkout and
-                    populate the commands from.
+    -b, --branch (string)
+        Will take a string as branch to checkout and
+        populate the commands from.
                 ",
                 usage: "minici seed [-b, --branch <value>]",
             },

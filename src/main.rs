@@ -3,6 +3,8 @@ pub mod utils;
 
 extern crate dirs;
 extern crate getopts;
+extern crate handlebars;
+extern crate pager;
 
 use crate::lib::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
