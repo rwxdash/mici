@@ -29,16 +29,16 @@ impl InitCommand {
             base: BaseCommand {
                 name: "minici init",
                 description: "Used for initializing the project",
-                synopsis: "
-    minici init
-        [--clean]
-                ",
+                synopsis: "minici init [options]",
                 options: "
     --clean (flag)
         This flag will remove the existing minici setup
         and do an empty setup.
                 ",
-                usage: "minici init [--clean]",
+                usage: "
+    minici init
+        [--clean]
+                ",
             },
         }
     }

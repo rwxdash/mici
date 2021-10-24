@@ -17,16 +17,16 @@ impl SeedCommand {
             base: BaseCommand {
                 name: "minici seed",
                 description: "Used for populating the commands",
-                synopsis: "
-    minici seed
-        [-b, --branch <value>]
-                ",
+                synopsis: "minici seed [options]",
                 options: "
     -b, --branch (string)
         Will take a string as branch to checkout and
         populate the commands from.
                 ",
-                usage: "minici seed [-b, --branch <value>]",
+                usage: "
+    minici seed
+        [-b, --branch <value>]
+                ",
             },
         }
     }
