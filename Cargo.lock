@@ -294,6 +294,7 @@ dependencies = [
  "handlebars",
  "pager",
  "serde",
+ "serde_json",
  "serde_yaml",
 ]
 

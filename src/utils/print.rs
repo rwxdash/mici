@@ -15,30 +15,13 @@ fn pager() {
     Pager::with_pager("less -r").setup();
 }
 
-fn bold_format_helper(
-    h: &Helper,
-    _: &Handlebars,
-    _: &Context,
-    _: &mut RenderContext,
-    out: &mut dyn Output,
-) -> Result<(), RenderError> {
-    let param = h
-        .params()
-        .iter()
-        .map(|p| p.render().bold().to_string())
-        .collect::<String>();
-
-    out.write(param.as_ref())?;
-
-    Ok(())
-}
-
 pub fn print_individual_help(command: &String) {
     let mut handlebars = Handlebars::new();
     handlebars
         .register_template_file("individual_help", "./templates/individual_help.hbs")
         .unwrap();
-    handlebars.register_helper("bold", Box::new(bold_format_helper));
+    handlebars_helper!(bold: |p: String| p.bold().to_string());
+    handlebars.register_helper("bold", Box::new(bold));
 
     match command.as_ref() {
         "init" => {

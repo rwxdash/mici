@@ -5,6 +5,7 @@ extern crate dirs;
 extern crate getopts;
 extern crate handlebars;
 extern crate pager;
+extern crate serde_json;
 
 use crate::lib::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
