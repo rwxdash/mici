@@ -3,7 +3,7 @@ name = "minici"
 version = "0.1.0"
 edition = "2021"
 authors = [
-    "Oguzhan Ozdemir <oguzhan.ozdemir@thundra.io"
+    "Oguzhan Ozdemir <aoozdemir@live.com>"
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
