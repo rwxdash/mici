@@ -15,6 +15,16 @@ pub fn get_project_folder() -> String {
     format!("{}/{}", home_dir, PROJECT_DIR)
 }
 
+pub fn get_config_file() -> String {
+    let home_dir: &str = &dirs::home_dir()
+        .unwrap()
+        .into_os_string()
+        .into_string()
+        .unwrap()[..];
+
+    format!("{}/{}/config.yml", home_dir, PROJECT_DIR)
+}
+
 pub fn get_jobs_folder() -> String {
     let home_dir: &str = &dirs::home_dir()
         .unwrap()

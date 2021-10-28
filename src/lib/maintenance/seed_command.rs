@@ -1,7 +1,7 @@
 extern crate colored;
 
 use crate::lib::maintenance::base_command::BaseCommand;
-use crate::utils::fs::get_project_folder;
+use crate::utils::fs::{get_config_file, get_project_folder};
 use std::error::Error;
 use std::path::Path;
 use std::process;
@@ -34,7 +34,13 @@ impl SeedCommand {
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
         let minici_exist = Path::new(&get_project_folder()).exists();
         if !minici_exist {
-            // print err and exit
+            // TODO: print err and exit
+            process::exit(1)
+        }
+
+        let config_exist = Path::new(&get_config_file()).exists();
+        if !config_exist {
+            // TODO: print err and exit
             process::exit(1)
         }
 
