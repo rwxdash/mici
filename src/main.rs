@@ -11,6 +11,7 @@ use crate::lib::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
 use colored::Colorize;
 use getopts::Options;
+use lib::maintenance::seed_command::SEED_COMMAND;
 use std::env;
 
 static PROJECT_DIR: &str = ".minici";
@@ -44,19 +45,15 @@ fn main() {
             };
         }
         Some("seed") => {
-            // run seed
-            let mut branch = String::new();
             opts.optopt("b", "branch", "", "");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
                 Err(_) => return,
             };
-            if matches.opt_present("b") {
-                println!("{:?}", matches.opt_positions("b"));
-                branch = matches.opt_str("b").unwrap();
-            }
 
-            println!("{}", branch);
+            match SEED_COMMAND.run(matches.opt_str("b")) {
+                Ok(()) | Err(_) => return,
+            };
         }
         Some(_) => {
             // check command

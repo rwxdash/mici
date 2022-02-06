@@ -2,10 +2,10 @@ extern crate colored;
 extern crate serde;
 
 use crate::lib::maintenance::base_command::BaseCommand;
+use crate::lib::maintenance::base_command::InitConfiguration;
 use crate::utils::fs::*;
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Input};
-use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
 use std::io::Write;
@@ -15,12 +15,6 @@ use std::process;
 #[allow(dead_code)]
 pub struct InitCommand {
     pub base: BaseCommand,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-struct InitConfiguration {
-    upstream_url: String,
-    upstream_cmd_path: String,
 }
 
 impl InitCommand {

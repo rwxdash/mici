@@ -1,12 +1,13 @@
 extern crate colored;
 
 use crate::lib::maintenance::base_command::BaseCommand;
-use crate::utils::fs::{get_config_file, get_project_folder};
+use crate::lib::maintenance::base_command::InitConfiguration;
+use crate::utils::fs::{create_tmp_folder, get_config_file, get_home_dir, get_project_folder};
+use git2::{Cred, RemoteCallbacks};
 use std::error::Error;
 use std::path::Path;
 use std::process;
 
-#[allow(dead_code)]
 pub struct SeedCommand {
     pub base: BaseCommand,
 }
@@ -31,31 +32,57 @@ impl SeedCommand {
         }
     }
 
-    pub fn run(&self) -> Result<(), Box<dyn Error>> {
+    pub fn run(&self, branch: Option<String>) -> Result<(), Box<dyn Error>> {
         let minici_exist = Path::new(&get_project_folder()).exists();
         if !minici_exist {
             // TODO: print err and exit
+            println!("> Exiting...");
             process::exit(1)
         }
 
         let config_exist = Path::new(&get_config_file()).exists();
         if !config_exist {
             // TODO: print err and exit
+            println!("> Exiting...");
             process::exit(1)
         }
 
-        // read ~/.minici/config.yml
-        // if config.yml is missing, prompt to get repo url
-        // - exit if not given
-        // write the repo to config.yml
-        // read config yml
-        // clone repo to /tmp/HASH
-        // pushd repo
-        // check if `~/.minici/jobs` is present, if not create dir
-        // diff ./seeds to ~/.minici/jobs
-        // cp ./seeds to ~/.minici/jobs
-        // popd repo
-        // rm repo
+        let config_file = std::fs::read_to_string(Path::new(&get_config_file())).unwrap();
+        let init_configuration: InitConfiguration = serde_yaml::from_str(&config_file)?;
+
+        let tmp_folder = create_tmp_folder();
+
+        println!("{}", tmp_folder);
+
+        let mut callbacks = RemoteCallbacks::new();
+        callbacks.credentials(|_url, username_from_url, _allowed_types| {
+            Cred::ssh_key(
+                username_from_url.unwrap(),
+                None,
+                std::path::Path::new(&format!("{}/.ssh/id_rsa", &get_home_dir())),
+                None,
+            )
+        });
+
+        // Prepare fetch options.
+        let mut fo = git2::FetchOptions::new();
+        fo.remote_callbacks(callbacks);
+
+        // Prepare builder.
+        let mut builder = git2::build::RepoBuilder::new();
+        builder.fetch_options(fo);
+
+        if branch.is_some() {
+            builder.branch(&branch.unwrap());
+        }
+
+        // Clone the project.
+        builder
+            .clone(
+                &init_configuration.upstream_url.as_str(),
+                Path::new(&tmp_folder),
+            )
+            .expect("Failed to clone the repository");
 
         return Ok(());
     }

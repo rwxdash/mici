@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 pub struct BaseCommand {
@@ -6,6 +7,12 @@ pub struct BaseCommand {
     pub synopsis: &'static str,
     pub options: &'static str,
     pub usage: &'static str,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InitConfiguration {
+    pub upstream_url: String,
+    pub upstream_cmd_path: String,
 }
 
 pub trait ExportAsHashMap {
