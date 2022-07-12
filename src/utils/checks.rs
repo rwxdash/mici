@@ -8,12 +8,22 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             println!("caught version");
             process::exit(0);
         }
+        Some("-d" | "--doc" | "doc") => {
+            println!("caught doc");
+            process::exit(0);
+        }
         _ => {}
     }
 
     match &args.last().map(String::as_ref) {
         Some("-h" | "--help" | "help") => {
-            print_individual_help(&args[1..args.len() - 1].join("/"));
+            let command_path: &[String] = &args[1..args.len() - 1];
+
+            if command_path.is_empty() {
+                println!("caught general help")
+            } else {
+                print_individual_help(&command_path.join("/"));
+            }
 
             process::exit(0);
         }
