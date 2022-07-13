@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CommandSchema {
-    pub version: Option<String>,
+    pub version: String,
     pub name: String,
     pub description: String,
     pub usage: String,

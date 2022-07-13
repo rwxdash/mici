@@ -5,6 +5,8 @@ Haven't thought how to go with all this features yet. There are parts that I sti
 #### Schema
 
 ```yaml
+# schema version
+version: 1
 description: Description
 usage: |
   USAGE_DETAILS
