@@ -20,7 +20,7 @@ impl SeedCommand {
                 description: "Used for populating the commands",
                 synopsis: "minici seed [options]",
                 options: "
-    -b, --branch (string)
+    -b, --branch     (option)
         Will take a string as branch to checkout and
         populate the commands from.
                 ",

@@ -25,7 +25,7 @@ impl InitCommand {
                 description: "Used for initializing the project",
                 synopsis: "minici init [options]",
                 options: "
-    --clean (flag)
+    --clean          (flag)
         This flag will remove the existing minici setup
         and do an empty setup.
                 ",
