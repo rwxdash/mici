@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+use crate::utils::traits::ExportAsHashMap;
+
 pub struct BaseCommand {
     pub name: &'static str,
     pub description: &'static str,
@@ -13,10 +15,6 @@ pub struct BaseCommand {
 pub struct InitConfiguration {
     pub upstream_url: String,
     pub upstream_cmd_path: String,
-}
-
-pub trait ExportAsHashMap {
-    fn as_hash_map(&self) -> HashMap<&str, &str>;
 }
 
 impl ExportAsHashMap for BaseCommand {

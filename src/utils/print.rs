@@ -1,8 +1,6 @@
 use crate::{
-    lib::maintenance::{
-        base_command::ExportAsHashMap, init_command::INIT_COMMAND, seed_command::SEED_COMMAND,
-    },
-    utils::fs::get_commands_folder,
+    lib::maintenance::{init_command::INIT_COMMAND, seed_command::SEED_COMMAND},
+    utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
 
 use colored::*;
@@ -43,12 +41,76 @@ pub fn print_individual_help(command: &String) {
             );
         }
         _ => {
-            let as_folder = format!("{}/{}", &get_commands_folder(), &command);
-            let as_file = format!("{}/{}.yml", &get_commands_folder(), &command);
-            let folder_exist = Path::new(&as_folder).exists();
-            let command_exist = Path::new(&as_file).exists();
+            let as_folder: String = format!("{}/{}", &get_commands_folder(), &command);
+            let as_file: String = format!("{}/{}.yml", &get_commands_folder(), &command);
+            let folder_exist: bool = Path::new(&as_folder).exists();
+            let command_exist: bool = Path::new(&as_file).exists();
 
-            if !folder_exist && !command_exist {
+            if command_exist {
+                match parse_command_file(&as_file) {
+                    Ok(cmd) => {
+                        let cmd_map: &mut std::collections::HashMap<&str, &str> =
+                            &mut cmd.as_hash_map();
+                        let synopsis: String = format!(
+                            "minici {} {}",
+                            &command.replace("/", " "),
+                            "[options]".bright_black()
+                        );
+                        cmd_map.insert("synopsis", &synopsis);
+
+                        let mut options: String = String::from("");
+                        for opt in cmd.configuration.options.iter().flatten() {
+                            let flag_type: &str;
+                            if opt.flag.unwrap() {
+                                flag_type = "(flag)";
+                            } else {
+                                flag_type = "(option)";
+                            }
+
+                            let mut flags: String = String::from("");
+                            if opt.short.is_some() {
+                                flags.push_str(
+                                    format!("-{}, ", opt.short.as_ref().unwrap()).as_str(),
+                                )
+                            }
+                            flags.push_str(format!("--{}", opt.long.as_str()).as_str());
+
+                            options.push_str(
+                                format!(
+                                    "
+    {:<16} {}
+        {}
+                                    ",
+                                    flags,
+                                    flag_type.bright_black(),
+                                    opt.description.as_ref().unwrap().as_str()
+                                )
+                                .as_str(),
+                            );
+                        }
+                        cmd_map.insert("options", &options.trim());
+
+                        // println!("{}", &options);
+                        pager();
+                        println!("{}", handlebars.render("individual_help", cmd_map).unwrap());
+                    }
+                    Err(err) => {
+                        println!("{}", err.to_string());
+                        println!("yaml invalid");
+                    }
+                }
+            } else if folder_exist {
+                println!(
+                    "> {} {}",
+                    &command, "isn't a valid command, it's a directory!"
+                );
+                println!(
+                    "  {} {} {}",
+                    "Run",
+                    "minici --help".bright_yellow(),
+                    "to see the available commands"
+                );
+            } else {
                 println!(
                     "> {} {}",
                     "Couldn't find the given command at",
@@ -66,32 +128,8 @@ pub fn print_individual_help(command: &String) {
                     "or visit",
                     "https://minici.rs".bright_blue(),
                 );
-                process::exit(1);
             }
-
-            if folder_exist {
-                println!(
-                    "> {} {}",
-                    &command, "isn't a valid command, it's a directory!"
-                );
-                println!(
-                    "  {} {} {}",
-                    "Run",
-                    "minici --help".bright_yellow(),
-                    "to see the available commands"
-                );
-                process::exit(1);
-            }
-
-            if command_exist {
-                // parse yaml and print individual_help
-            }
-
-            // figure out path by
-            // joining `&args[1..args.len() - 1]` with `/`
-            // check if file exist
-            // if so, print the usage
-            // if not, warn and print general help
+            process::exit(1);
         }
     }
 }
