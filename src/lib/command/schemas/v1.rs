@@ -17,8 +17,8 @@ pub struct CommandSchema {
 pub struct CommandSchemaConfiguration {
     #[serde(default = "default_schema_configuration_confirm")]
     pub confirm: Option<bool>,
-    #[serde(default = "default_schema_configuration_orderly")]
-    pub orderly: Option<bool>,
+    #[serde(default = "default_schema_configuration_parallel")]
+    pub parallel: Option<bool>,
     pub environment: Option<HashMap<String, Option<String>>>,
     pub options: Option<Vec<CommandSchemaOption>>,
     pub group: Vec<String>,
@@ -67,8 +67,8 @@ fn default_schema_configuration_confirm() -> Option<bool> {
     return Some(false);
 }
 
-fn default_schema_configuration_orderly() -> Option<bool> {
-    return Some(true);
+fn default_schema_configuration_parallel() -> Option<bool> {
+    return Some(false);
 }
 
 fn default_schema_option_required() -> Option<bool> {

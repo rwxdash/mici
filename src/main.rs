@@ -57,6 +57,14 @@ fn main() {
         }
         Some(_) => {
             // check command
+            println!("{:#?}", &args[1..]);
+            match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
         }
         None => {
             println!("help none");

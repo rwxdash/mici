@@ -9,18 +9,21 @@ description: Description
 usage: |
   USAGE_DETAILS
 configuration:
-  # expect confirmation from the user
-  confirm: true
-  # run steps asyncronously and independently, default false
-  async: true | false
+  # expect confirmation from the user, default false
+  confirm: true | false
+  # run steps in parallel, default false
+  parallel: true | false
   # env vars for this run
   environment:
     KEY: VALUE
-  #! options to take from terminal with `--` prefix, `-` if value is one letter (?)
-  #! value can be accessed inside the YAML via {{ options.<key> }}
+  # value can be accessed inside the YAML via {{ options.<key> }}
   options:
-    - branch
-  #! authorization group
+    - long: long_name         # eg. --branch
+      short: short_name       # eg. -b
+      required: true | false  # default false
+      flag: true | false      # flag or option. default false.
+      default: main           # default value when flag is unpresent
+      description: Repository branch to clone
   group:
     - developer
     - devops
