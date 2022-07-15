@@ -26,10 +26,6 @@ configuration:
       flag: true | false      # flag or option. default false.
       default: main           # default value when flag is unpresent
       description: Repository branch to clone
-  group:
-    - developer
-    - devops
-    - admin
 steps:
   - name: Step 1
     run:

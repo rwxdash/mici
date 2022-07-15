@@ -21,7 +21,6 @@ pub struct CommandSchemaConfiguration {
     pub parallel: Option<bool>,
     pub environment: Option<HashMap<String, Option<String>>>,
     pub options: Option<Vec<CommandSchemaOption>>,
-    pub group: Vec<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
