@@ -1,7 +1,10 @@
 extern crate colored;
+extern crate fs_extra;
 
 use crate::PROJECT_DIR;
 use colored::*;
+use fs_extra::dir::copy;
+use fs_extra::dir::CopyOptions;
 use std::env;
 use std::fs;
 use std::process;
@@ -67,4 +70,21 @@ pub fn create_tmp_folder() -> String {
     };
 
     return path;
+}
+
+pub fn copy_directory(from: &str, to: &str) {
+    let options = CopyOptions {
+        overwrite: true,
+        skip_exist: false,
+        buffer_size: 64000, // 64kb
+        copy_inside: true,
+        content_only: true,
+        depth: 0,
+    };
+
+    // TODO: Better error handling.
+    match copy(from, to, &options) {
+        Ok(it) => it,
+        Err(_err) => return,
+    };
 }

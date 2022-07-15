@@ -2,7 +2,10 @@ extern crate colored;
 
 use crate::lib::maintenance::base_command::BaseCommand;
 use crate::lib::maintenance::base_command::InitConfiguration;
-use crate::utils::fs::{create_tmp_folder, get_config_file, get_home_dir, get_project_folder};
+use crate::utils::fs::{
+    copy_directory, create_tmp_folder, get_config_file, get_home_dir, get_jobs_folder,
+    get_project_folder,
+};
 use git2::{Cred, RemoteCallbacks};
 use std::error::Error;
 use std::path::Path;
@@ -52,8 +55,6 @@ impl SeedCommand {
 
         let tmp_folder = create_tmp_folder();
 
-        println!("{}", tmp_folder);
-
         let mut callbacks = RemoteCallbacks::new();
         callbacks.credentials(|_url, username_from_url, _allowed_types| {
             Cred::ssh_key(
@@ -83,6 +84,11 @@ impl SeedCommand {
                 Path::new(&tmp_folder),
             )
             .expect("Failed to clone the repository");
+
+        copy_directory(
+            format!("{}/{}", &tmp_folder, init_configuration.upstream_cmd_path).as_str(),
+            &get_jobs_folder(),
+        );
 
         return Ok(());
     }
