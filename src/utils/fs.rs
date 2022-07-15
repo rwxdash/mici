@@ -37,6 +37,10 @@ pub fn get_scripts_folder() -> String {
     format!("{}/{}/jobs/scripts", &get_home_dir(), PROJECT_DIR)
 }
 
+pub fn clear_jobs_folder() -> Result<(), std::io::Error> {
+    fs::remove_dir_all(&get_jobs_folder())
+}
+
 pub fn create_folder_at(path: &str) {
     if let Err(e) = fs::create_dir_all(&path) {
         println!(
@@ -72,7 +76,7 @@ pub fn create_tmp_folder() -> String {
     return path;
 }
 
-pub fn copy_directory(from: &str, to: &str) {
+pub fn copy_directory(from: &str, to: &str) -> Result<u64, fs_extra::error::Error> {
     let options = CopyOptions {
         overwrite: true,
         skip_exist: false,
@@ -82,9 +86,5 @@ pub fn copy_directory(from: &str, to: &str) {
         depth: 0,
     };
 
-    // TODO: Better error handling.
-    match copy(from, to, &options) {
-        Ok(it) => it,
-        Err(_err) => return,
-    };
+    copy(from, to, &options)
 }
