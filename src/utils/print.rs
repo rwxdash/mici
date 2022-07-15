@@ -15,9 +15,16 @@ fn pager() {
 
 pub fn print_individual_help(command: &String) {
     let mut handlebars = Handlebars::new();
+
+    let template_asset = include_bytes!("../../templates/individual_help.hbs");
+
     handlebars
-        .register_template_file("individual_help", "./templates/individual_help.hbs")
+        .register_template_string(
+            "individual_help",
+            std::str::from_utf8(template_asset).unwrap(),
+        )
         .unwrap();
+
     handlebars_helper!(bold: |p: String| p.bold().to_string());
     handlebars.register_helper("bold", Box::new(bold));
 
