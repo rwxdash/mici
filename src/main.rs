@@ -1,4 +1,4 @@
-pub mod lib;
+pub mod cli;
 pub mod utils;
 
 extern crate dirs;
@@ -7,11 +7,11 @@ extern crate handlebars;
 extern crate pager;
 extern crate serde_json;
 
-use crate::lib::maintenance::init_command::INIT_COMMAND;
+use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
+use cli::maintenance::seed_command::SEED_COMMAND;
 use colored::Colorize;
 use getopts::Options;
-use lib::maintenance::seed_command::SEED_COMMAND;
 use std::env;
 
 static PROJECT_DIR: &str = ".minici";

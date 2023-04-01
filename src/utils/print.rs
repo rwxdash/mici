@@ -1,5 +1,5 @@
 use crate::{
-    lib::maintenance::{init_command::INIT_COMMAND, seed_command::SEED_COMMAND},
+    cli::maintenance::{init_command::INIT_COMMAND, seed_command::SEED_COMMAND},
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
 

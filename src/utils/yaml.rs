@@ -1,4 +1,4 @@
-use crate::lib::command::schemas::v1::CommandSchema;
+use crate::cli::schemas::v1::CommandSchema;
 use std::path::Path;
 
 pub fn parse_command_file(path: &String) -> Result<CommandSchema, serde_yaml::Error> {

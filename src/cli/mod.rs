@@ -1,2 +1,2 @@
-pub mod command;
 pub mod maintenance;
+pub mod schemas;
