@@ -63,6 +63,7 @@ fn main() {
             };
         }
         Some("new") => todo!(),
+        Some("list") => todo!(),
         Some(_) => {
             // check command
             println!("{:#?}", &args[1..]);

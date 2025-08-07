@@ -8,10 +8,6 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             println!("caught version");
             process::exit(0);
         }
-        Some("-d" | "--doc" | "doc") => {
-            println!("caught doc");
-            process::exit(0);
-        }
         _ => {}
     }
 
