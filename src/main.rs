@@ -51,8 +51,12 @@ fn main() {
             opts.optopt("b", "branch", "", "");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
-                Err(_) => return,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
             };
+            println!("{:?}", &matches);
 
             match SEED_COMMAND.run(matches.opt_str("b")) {
                 Ok(()) | Err(_) => return,

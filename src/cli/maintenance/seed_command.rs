@@ -3,11 +3,13 @@ extern crate colored;
 use crate::cli::maintenance::base_command::BaseCommand;
 use crate::cli::maintenance::base_command::InitConfiguration;
 use crate::utils::fs::{
-    clear_jobs_folder, copy_directory, create_tmp_folder, get_config_file, get_home_dir,
-    get_jobs_folder, get_project_folder,
+    clear_jobs_folder, copy_directory, create_tmp_folder, get_config_file, get_jobs_folder,
+    get_project_folder,
 };
+use git2::CredentialType;
 use git2::{Cred, RemoteCallbacks};
 use std::error::Error;
+use std::fs;
 use std::path::Path;
 use std::process;
 
@@ -36,6 +38,9 @@ impl SeedCommand {
     }
 
     pub fn run(&self, branch: Option<String>) -> Result<(), Box<dyn Error>> {
+        // TODO: Warn that this cant be undone!
+        // TODO: Better logging
+
         let minici_exist = Path::new(&get_project_folder()).exists();
         if !minici_exist {
             // TODO: print err and exit
@@ -51,7 +56,7 @@ impl SeedCommand {
         }
 
         let config_file = std::fs::read_to_string(Path::new(&get_config_file())).unwrap();
-        let init_configuration: InitConfiguration = serde_yaml::from_str(&config_file)?;
+        let init_configuration: InitConfiguration = serde_yaml::from_str(&config_file).unwrap();
 
         if init_configuration.upstream_url.is_none() {
             // TODO: print err and exit
@@ -62,28 +67,38 @@ impl SeedCommand {
         let tmp_folder = create_tmp_folder();
 
         let mut callbacks = RemoteCallbacks::new();
-        callbacks.credentials(|_url, username_from_url, _allowed_types| {
-            Cred::ssh_key(
-                username_from_url.unwrap(),
-                None,
-                std::path::Path::new(&format!("{}/.ssh/id_rsa", &get_home_dir())),
-                None,
-            )
+        callbacks.credentials(|_url, username_from_url, allowed_types| {
+            let username = username_from_url.unwrap_or("git");
+
+            if allowed_types.contains(CredentialType::SSH_KEY) {
+                return Cred::ssh_key_from_agent(username);
+            }
+
+            if allowed_types.contains(CredentialType::USER_PASS_PLAINTEXT) {
+                let token_vars = ["GITHUB_TOKEN", "GITLAB_TOKEN", "GIT_TOKEN"];
+
+                for var in &token_vars {
+                    if let Ok(token) = std::env::var(var) {
+                        return Cred::userpass_plaintext(username, &token);
+                    }
+                }
+            }
+
+            Err(git2::Error::from_str("No authentication method available"))
         });
 
-        // Prepare fetch options.
-        let mut fo = git2::FetchOptions::new();
-        fo.remote_callbacks(callbacks);
+        let mut fetch_options = git2::FetchOptions::new();
+        fetch_options.remote_callbacks(callbacks);
+        fetch_options.depth(1);
 
-        // Prepare builder.
         let mut builder = git2::build::RepoBuilder::new();
-        builder.fetch_options(fo);
+
+        builder.fetch_options(fetch_options);
 
         if branch.is_some() {
             builder.branch(&branch.unwrap());
         }
 
-        // Clone the project.
         builder
             .clone(
                 &init_configuration.upstream_url.unwrap().as_str(),
@@ -103,6 +118,8 @@ impl SeedCommand {
             &get_jobs_folder(),
         )
         .expect("Failed to copy upstream to the jobs directory");
+
+        fs::remove_dir_all(&tmp_folder).expect("Failed to remove temporary folder");
 
         return Ok(());
     }

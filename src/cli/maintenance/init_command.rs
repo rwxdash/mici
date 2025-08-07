@@ -115,13 +115,13 @@ impl InitCommand {
                 .unwrap();
 
             init_configuration = InitConfiguration {
-                set_upstream: true,
+                set_upstream: Some(true),
                 upstream_url: Some(upstream_url),
                 upstream_cmd_path: Some(upstream_cmd_path),
             };
         } else {
             init_configuration = InitConfiguration {
-                set_upstream: false,
+                set_upstream: Some(false),
                 upstream_url: None,
                 upstream_cmd_path: None,
             };

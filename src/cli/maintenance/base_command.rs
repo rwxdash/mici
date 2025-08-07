@@ -1,4 +1,4 @@
-use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
 
 use crate::utils::traits::ExportAsHashMap;
@@ -27,7 +27,7 @@ impl ExportAsHashMap for BaseCommand {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct InitConfiguration {
-    pub set_upstream: bool,
+    pub set_upstream: Option<bool>,
     pub upstream_url: Option<String>,
     pub upstream_cmd_path: Option<String>,
 }
