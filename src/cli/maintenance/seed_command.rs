@@ -53,6 +53,12 @@ impl SeedCommand {
         let config_file = std::fs::read_to_string(Path::new(&get_config_file())).unwrap();
         let init_configuration: InitConfiguration = serde_yaml::from_str(&config_file)?;
 
+        if init_configuration.upstream_url.is_none() {
+            // TODO: print err and exit
+            println!("> Exiting...");
+            process::exit(1)
+        }
+
         let tmp_folder = create_tmp_folder();
 
         let mut callbacks = RemoteCallbacks::new();
@@ -80,7 +86,7 @@ impl SeedCommand {
         // Clone the project.
         builder
             .clone(
-                &init_configuration.upstream_url.as_str(),
+                &init_configuration.upstream_url.unwrap().as_str(),
                 Path::new(&tmp_folder),
             )
             .expect("Failed to clone the repository");
@@ -88,7 +94,12 @@ impl SeedCommand {
         clear_jobs_folder().expect("Failed to clear the jobs directory");
 
         copy_directory(
-            format!("{}/{}", &tmp_folder, init_configuration.upstream_cmd_path).as_str(),
+            format!(
+                "{}/{}",
+                &tmp_folder,
+                init_configuration.upstream_cmd_path.unwrap()
+            )
+            .as_str(),
             &get_jobs_folder(),
         )
         .expect("Failed to copy upstream to the jobs directory");

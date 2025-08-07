@@ -5,6 +5,7 @@ use crate::{
 
 use colored::*;
 use handlebars::*;
+use indoc::printdoc;
 use pager::Pager;
 use std::path::Path;
 use std::process;
@@ -107,34 +108,25 @@ pub fn print_individual_help(command: &String) {
                     }
                 }
             } else if folder_exist {
-                println!(
-                    "> {} {}",
-                    &command, "isn't a valid command, it's a directory!"
-                );
-                println!(
-                    "  {} {} {}",
-                    "Run",
+                printdoc! {"
+                    {} {} isn't a valid command, it's a directory!
+                      Run {} to see the available commands
+                ",
+                    ">".bright_black(),
+                    &command,
                     "minici --help".bright_yellow(),
-                    "to see the available commands"
-                );
+                }
             } else {
-                println!(
-                    "> {} {}",
-                    "Couldn't find the given command at",
-                    &as_file.bright_red()
-                );
-                println!(
-                    "  {} {}",
-                    "Try creating a new command or run",
-                    "minici --help".bright_yellow()
-                );
-                println!(
-                    "  {} {} {} {}",
-                    "If you need help with creating a command, run",
-                    "minici --doc".bright_yellow(),
-                    "or visit",
-                    "https://minici.rs".bright_blue(),
-                );
+                printdoc! {"
+                    {} Couldn't find the given command at {}
+                      Try creating a new command with {}
+                      or run {} to see the available commands
+                ",
+                    ">".bright_black(),
+                    &as_file.underline().bold(),
+                    "minici new".bright_yellow(),
+                    "minici --help".bright_yellow(),
+                }
             }
             process::exit(1);
         }

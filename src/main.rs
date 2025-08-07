@@ -9,10 +9,13 @@ extern crate serde_json;
 
 use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
+use crate::utils::fs::*;
 use cli::maintenance::seed_command::SEED_COMMAND;
 use colored::Colorize;
 use getopts::Options;
+use indoc::printdoc;
 use std::env;
+use std::path::Path;
 
 static PROJECT_DIR: &str = ".minici";
 
@@ -55,6 +58,7 @@ fn main() {
                 Ok(()) | Err(_) => return,
             };
         }
+        Some("new") => todo!(),
         Some(_) => {
             // check command
             println!("{:#?}", &args[1..]);
@@ -67,26 +71,35 @@ fn main() {
             };
         }
         None => {
-            println!("help none");
+            // Check if ~/.minici/config.yml exists
+            // If not, print first time help
+            // Otherwise, print shorter version
+            let minici_exist = Path::new(&get_project_folder()).exists();
+
+            if minici_exist {
+                printdoc! {"
+                    {} This is {}!
+                      Found an existing configuration at {}
+                      Try running {} to see what's available
+                ",
+                    ">".bright_black(),
+                    "minici".underline().bold(),
+                    &get_project_folder().underline().bold(),
+                    "minici --help".bright_yellow().bold(),
+                };
+            } else {
+                printdoc! {"
+                    {} This is {}!
+
+                      I don't see any existing configuration at {}
+                      Try running {}
+                ",
+                    ">".bright_black(),
+                    "minici".underline().bold(),
+                    &get_project_folder().underline().bold(),
+                    "minici init".bright_yellow().bold(),
+                };
+            }
         }
     }
 }
-
-// minici root project subcommand [flag]
-
-// minici   thundra         foresight       frontend        deploy
-//          maintenance     slack-bot       update          --anyflag="123"
-
-/*
-
-> check for help and version flag
-> check for other flags
-> pop flags
-> joint the rest with `/`
-> validate file is present
-    - error if not
-    - print help
-> parse the command yaml
-> run the steps
-
-*/

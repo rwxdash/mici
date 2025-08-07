@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize, Serializer};
 use std::collections::HashMap;
 
 use crate::utils::traits::ExportAsHashMap;
@@ -9,12 +9,6 @@ pub struct BaseCommand {
     pub synopsis: &'static str,
     pub options: &'static str,
     pub usage: &'static str,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct InitConfiguration {
-    pub upstream_url: String,
-    pub upstream_cmd_path: String,
 }
 
 impl ExportAsHashMap for BaseCommand {
@@ -28,5 +22,24 @@ impl ExportAsHashMap for BaseCommand {
         content.insert("usage", self.usage.trim());
 
         return content;
+    }
+}
+
+#[derive(Debug, PartialEq, Deserialize)]
+pub struct InitConfiguration {
+    pub set_upstream: bool,
+    pub upstream_url: Option<String>,
+    pub upstream_cmd_path: Option<String>,
+}
+
+impl Serialize for InitConfiguration {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("InitConfiguration", 2)?;
+        s.serialize_field("upstream_url", &self.upstream_url)?;
+        s.serialize_field("upstream_cmd_path", &self.upstream_cmd_path)?;
+        s.end()
     }
 }
