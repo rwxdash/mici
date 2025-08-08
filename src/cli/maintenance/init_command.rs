@@ -145,7 +145,7 @@ impl InitCommand {
             ">".bright_black(),
             &get_project_folder().blue().bold(),
             "/config.yml".blue().bold(),
-            "minici seed".blue().bold(),
+            "minici fetch".blue().bold(),
         }
 
         return Ok(());

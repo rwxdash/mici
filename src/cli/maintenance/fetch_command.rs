@@ -13,24 +13,24 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-pub struct SeedCommand {
+pub struct FetchCommand {
     pub base: BaseCommand,
 }
 
-impl SeedCommand {
+impl FetchCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "minici seed",
+                name: "minici fetch",
                 description: "Used for populating the commands",
-                synopsis: "minici seed [options]",
+                synopsis: "minici fetch [options]",
                 options: "
     -b, --branch     (option)
         Will take a string as branch to checkout and
         populate the commands from.
                 ",
                 usage: "
-    minici seed
+    minici fetch
         [-b, --branch <value>]
                 ",
             },
@@ -125,4 +125,4 @@ impl SeedCommand {
     }
 }
 
-pub const SEED_COMMAND: SeedCommand = SeedCommand::new();
+pub const FETCH_COMMAND: FetchCommand = FetchCommand::new();

@@ -1,5 +1,5 @@
 use crate::{
-    cli::maintenance::{init_command::INIT_COMMAND, seed_command::SEED_COMMAND},
+    cli::maintenance::{fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND},
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
 
@@ -39,12 +39,12 @@ pub fn print_individual_help(command: &String) {
                     .unwrap(),
             );
         }
-        "seed" => {
+        "fetch" => {
             pager();
             println!(
                 "{}",
                 handlebars
-                    .render("individual_help", &SEED_COMMAND.base.as_hash_map())
+                    .render("individual_help", &FETCH_COMMAND.base.as_hash_map())
                     .unwrap(),
             );
         }

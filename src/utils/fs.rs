@@ -60,7 +60,7 @@ pub fn create_tmp_folder() -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let path = format!("{}/mci-seed-{}", tmp_dir, timestamp);
+    let path = format!("{}/mci-fetch-{}", tmp_dir, timestamp);
 
     if let Err(e) = fs::create_dir_all(&path) {
         println!(

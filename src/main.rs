@@ -10,7 +10,7 @@ extern crate serde_json;
 use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
 use crate::utils::fs::*;
-use cli::maintenance::seed_command::SEED_COMMAND;
+use cli::maintenance::fetch_command::FETCH_COMMAND;
 use colored::Colorize;
 use getopts::Options;
 use indoc::printdoc;
@@ -47,7 +47,7 @@ fn main() {
                 Ok(()) | Err(_) => return,
             };
         }
-        Some("seed") => {
+        Some("fetch") => {
             opts.optopt("b", "branch", "", "");
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
@@ -58,7 +58,7 @@ fn main() {
             };
             println!("{:?}", &matches);
 
-            match SEED_COMMAND.run(matches.opt_str("b")) {
+            match FETCH_COMMAND.run(matches.opt_str("b")) {
                 Ok(()) | Err(_) => return,
             };
         }
