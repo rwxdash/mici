@@ -109,12 +109,10 @@ impl FetchCommand {
         clear_jobs_folder().expect("Failed to clear the jobs directory");
 
         copy_directory(
-            format!(
-                "{}/{}",
-                &tmp_folder,
-                init_configuration.upstream_cmd_path.unwrap()
-            )
-            .as_str(),
+            Path::new(&tmp_folder)
+                .join(init_configuration.upstream_cmd_path.unwrap())
+                .to_str()
+                .unwrap(),
             &get_jobs_folder(),
         )
         .expect("Failed to copy upstream to the jobs directory");

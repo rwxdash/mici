@@ -133,7 +133,7 @@ impl InitCommand {
         create_folder_at(&get_commands_folder());
         create_folder_at(&get_scripts_folder());
 
-        let mut config_yaml = fs::File::create(format!("{}/config.yml", &get_project_folder()))?;
+        let mut config_yaml = fs::File::create(&get_config_file())?;
         let config_yaml_as_string = serde_yaml::to_string(&init_configuration)?;
         config_yaml.write_all(&config_yaml_as_string.as_bytes())?;
 

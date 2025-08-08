@@ -71,8 +71,14 @@ pub fn print_individual_help(command: &String) {
             );
         }
         _ => {
-            let as_folder: String = format!("{}/{}", &get_commands_folder(), &command);
-            let as_file: String = format!("{}/{}.yml", &get_commands_folder(), &command);
+            let as_folder = Path::new(&get_commands_folder())
+                .join(&command)
+                .to_string_lossy()
+                .into_owned();
+            let as_file: String = Path::new(&get_commands_folder())
+                .join(format!("{}.yml", &command))
+                .to_string_lossy()
+                .into_owned();
             let folder_exist: bool = Path::new(&as_folder).exists();
             let command_exist: bool = Path::new(&as_file).exists();
 
