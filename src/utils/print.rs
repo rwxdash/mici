@@ -7,7 +7,6 @@ use colored::*;
 use handlebars::*;
 use indoc::printdoc;
 use std::path::Path;
-use std::process;
 
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
@@ -156,7 +155,6 @@ pub fn print_individual_help(command: &String) {
                     "minici --help".bright_yellow(),
                 }
             }
-            process::exit(1);
         }
     }
 }
