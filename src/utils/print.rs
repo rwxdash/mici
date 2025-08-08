@@ -6,12 +6,34 @@ use crate::{
 use colored::*;
 use handlebars::*;
 use indoc::printdoc;
-use pager::Pager;
 use std::path::Path;
 use std::process;
 
+#[cfg(not(target_os = "windows"))]
+use pager::Pager;
+
+#[cfg(not(target_os = "windows"))]
 fn pager() {
-    Pager::with_pager("less -r").setup();
+    use std::process::Command;
+
+    // Check if 'less' command exists
+    let has_less = Command::new("which")
+        .arg("less")
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false);
+
+    if has_less {
+        Pager::with_pager("less -r").setup();
+    } else {
+        // Fallback to cat (always available on Unix)
+        Pager::with_pager("cat").setup();
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn pager() {
+    // No-op
 }
 
 pub fn print_individual_help(command: &String) {

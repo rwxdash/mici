@@ -4,8 +4,10 @@ pub mod utils;
 extern crate dirs;
 extern crate getopts;
 extern crate handlebars;
-extern crate pager;
 extern crate serde_json;
+
+#[cfg(not(target_os = "windows"))]
+extern crate pager;
 
 use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
