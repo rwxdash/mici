@@ -1,6 +1,7 @@
 use crate::{
     cli::maintenance::{
         fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND, list_command::LIST_COMMAND,
+        new_command::NEW_COMMAND,
     },
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
@@ -53,6 +54,15 @@ pub fn print_individual_help(command: &String) {
     handlebars.register_helper("bold", Box::new(bold));
 
     match command.as_ref() {
+        "new" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &NEW_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
         "init" => {
             pager();
             println!(
@@ -99,7 +109,7 @@ pub fn print_individual_help(command: &String) {
                             &mut cmd.as_hash_map();
                         let synopsis: String = format!(
                             "minici {} {}",
-                            &command.replace(&path::MAIN_SEPARATOR.to_string(), " "),
+                            &command.replace(path::MAIN_SEPARATOR, " "),
                             "[options]".bright_black()
                         );
                         cmd_map.insert("synopsis", &synopsis);

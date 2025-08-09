@@ -49,11 +49,12 @@ impl InitCommand {
                 printdoc! {"
                     {} Found existing minici setup
                     {} Doing the cleanup...
-                      {}
+                      {} {}
                 ",
                     ">".bright_black(),
                     ">".bright_black(),
-                    "Removing ~/.minici".bright_yellow()
+                    "Removing".bright_yellow(),
+                    &get_project_folder().bright_yellow()
                 }
 
                 if let Err(e) = fs::remove_dir_all(&get_project_folder()) {

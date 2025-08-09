@@ -14,6 +14,7 @@ use crate::utils::checks::catch_help_and_version_commands;
 use crate::utils::fs::*;
 use cli::maintenance::fetch_command::FETCH_COMMAND;
 use cli::maintenance::list_command::LIST_COMMAND;
+use cli::maintenance::new_command::NEW_COMMAND;
 use colored::Colorize;
 use getopts::Options;
 use indoc::printdoc;
@@ -65,7 +66,25 @@ fn main() {
                 Ok(()) | Err(_) => return,
             };
         }
-        Some("new") => todo!(),
+        Some("new") => {
+            let matches = match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+
+            let command_args = matches.free[1..].to_vec();
+
+            match NEW_COMMAND.run(command_args) {
+                Ok(()) => return,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+        }
         Some("list") => {
             let matches = match opts.parse(&args[1..]) {
                 Ok(m) => m,
@@ -75,8 +94,8 @@ fn main() {
                 }
             };
 
-            let paths = matches.free[1..].to_vec();
-            match LIST_COMMAND.run(paths) {
+            let command_args = matches.free[1..].to_vec();
+            match LIST_COMMAND.run(command_args) {
                 Ok(()) | Err(_) => return,
             };
         }
