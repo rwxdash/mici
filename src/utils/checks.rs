@@ -1,5 +1,6 @@
 use crate::utils::print::print_individual_help;
 
+use std::path;
 use std::process;
 
 pub fn catch_help_and_version_commands(args: &Vec<String>) {
@@ -18,7 +19,7 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             if command_path.is_empty() {
                 println!("caught general help")
             } else {
-                print_individual_help(&command_path.join("/"));
+                print_individual_help(&command_path.join(&path::MAIN_SEPARATOR.to_string()));
             }
 
             process::exit(0);

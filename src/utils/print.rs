@@ -1,12 +1,14 @@
 use crate::{
-    cli::maintenance::{fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND},
+    cli::maintenance::{
+        fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND, list_command::LIST_COMMAND,
+    },
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
 
 use colored::*;
 use handlebars::*;
 use indoc::printdoc;
-use std::path::Path;
+use std::path::{self, Path};
 
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
@@ -69,6 +71,15 @@ pub fn print_individual_help(command: &String) {
                     .unwrap(),
             );
         }
+        "list" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &LIST_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
         _ => {
             let as_folder = Path::new(&get_commands_folder())
                 .join(&command)
@@ -88,7 +99,7 @@ pub fn print_individual_help(command: &String) {
                             &mut cmd.as_hash_map();
                         let synopsis: String = format!(
                             "minici {} {}",
-                            &command.replace("/", " "),
+                            &command.replace(&path::MAIN_SEPARATOR.to_string(), " "),
                             "[options]".bright_black()
                         );
                         cmd_map.insert("synopsis", &synopsis);

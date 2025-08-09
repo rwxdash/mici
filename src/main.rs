@@ -13,6 +13,7 @@ use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
 use crate::utils::fs::*;
 use cli::maintenance::fetch_command::FETCH_COMMAND;
+use cli::maintenance::list_command::LIST_COMMAND;
 use colored::Colorize;
 use getopts::Options;
 use indoc::printdoc;
@@ -65,7 +66,20 @@ fn main() {
             };
         }
         Some("new") => todo!(),
-        Some("list") => todo!(),
+        Some("list") => {
+            let matches = match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+
+            let paths = matches.free[1..].to_vec();
+            match LIST_COMMAND.run(paths) {
+                Ok(()) | Err(_) => return,
+            };
+        }
         Some(_) => {
             // check command
             println!("{:#?}", &args[1..]);
