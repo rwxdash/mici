@@ -11,7 +11,7 @@ impl ListCommand {
         ListCommand {
             base: BaseCommand {
                 name: "minici list",
-                description: "Displays all available commands, optionally filtered by directory",
+                description: "Displays all available commands, optionally filtered by directory.",
                 synopsis: "minici list [<directory>...]",
                 options: "
     <directory>...      (argument)
