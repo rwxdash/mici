@@ -26,13 +26,12 @@ impl InitCommand {
         Self {
             base: BaseCommand {
                 name: "minici init",
-                description: "Used for initializing the project",
+                description: "Initializes a new minici project or reconfigures an existing setup.",
                 synopsis: "minici init [options]",
-                options: "
-    --clean          (flag)
-        This flag will remove the existing minici setup
-        and do an empty setup.
-                ",
+            options: "
+        --clean     (flag)
+        Remove any existing minici configuration and perform a fresh, empty setup. Use this to reset your environment.
+            ",
                 usage: "
     minici init
         [--clean]

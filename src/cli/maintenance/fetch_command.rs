@@ -22,16 +22,15 @@ impl FetchCommand {
         Self {
             base: BaseCommand {
                 name: "minici fetch",
-                description: "Used for populating the commands",
+                description: "Synchronizes and updates local commands by cloning from a specified remote repository.",
                 synopsis: "minici fetch [options]",
-                options: "
-    -b, --branch     (option)
-        Will take a string as branch to checkout and
-        populate the commands from.
-                ",
+            options: "
+        -b, --branch <name>     (option)
+        Specify the branch to fetch and use for updating local commands. Defaults to the repository's default branch if not provided.
+            ",
                 usage: "
     minici fetch
-        [-b, --branch <value>]
+        [-b, --branch <name>]
                 ",
             },
         }
