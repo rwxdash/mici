@@ -62,7 +62,14 @@ impl NewCommand {
 
         let command_path = if command_args.is_empty() {
             println!("{} Let's create a new command!", ">".bright_black());
-            self.prompt_for_path()?
+            let prompted_path = self.prompt_for_path()?;
+            let prompted_args: Vec<&str> = prompted_path.split_whitespace().collect();
+            let prompted_args: Vec<String> =
+                prompted_args.into_iter().map(|s| s.to_string()).collect();
+            let normalized_path = self.normalize_path(prompted_args)?;
+
+            self.validate_path(&normalized_path)?;
+            normalized_path
         } else {
             let normalized_path = self.normalize_path(command_args)?;
             self.validate_path(&normalized_path)?;
