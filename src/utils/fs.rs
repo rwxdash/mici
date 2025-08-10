@@ -3,10 +3,11 @@ extern crate fs_extra;
 
 use crate::PROJECT_DIR;
 use colored::*;
-use fs_extra::dir::copy;
 use fs_extra::dir::CopyOptions;
+use fs_extra::dir::copy;
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::process;
 
 pub fn get_home_dir() -> String {
@@ -18,23 +19,44 @@ pub fn get_home_dir() -> String {
 }
 
 pub fn get_project_folder() -> String {
-    format!("{}/{}", &get_home_dir(), PROJECT_DIR)
+    Path::new(&get_home_dir())
+        .join(PROJECT_DIR)
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn get_config_file() -> String {
-    format!("{}/{}/config.yml", &get_home_dir(), PROJECT_DIR)
+    Path::new(&get_home_dir())
+        .join(PROJECT_DIR)
+        .join("config.yml")
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn get_jobs_folder() -> String {
-    format!("{}/{}/jobs", &get_home_dir(), PROJECT_DIR)
+    Path::new(&get_home_dir())
+        .join(PROJECT_DIR)
+        .join("jobs")
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn get_commands_folder() -> String {
-    format!("{}/{}/jobs/commands", &get_home_dir(), PROJECT_DIR)
+    Path::new(&get_home_dir())
+        .join(PROJECT_DIR)
+        .join("jobs")
+        .join("commands")
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn get_scripts_folder() -> String {
-    format!("{}/{}/jobs/scripts", &get_home_dir(), PROJECT_DIR)
+    Path::new(&get_home_dir())
+        .join(PROJECT_DIR)
+        .join("jobs")
+        .join("scripts")
+        .to_string_lossy()
+        .into_owned()
 }
 
 pub fn clear_jobs_folder() -> Result<(), std::io::Error> {
@@ -60,7 +82,10 @@ pub fn create_tmp_folder() -> String {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_millis();
-    let path = format!("{}/mci-seed-{}", tmp_dir, timestamp);
+    let path = Path::new(&tmp_dir)
+        .join(format!("mci-fetch-{}", timestamp))
+        .to_string_lossy()
+        .into_owned();
 
     if let Err(e) = fs::create_dir_all(&path) {
         println!(

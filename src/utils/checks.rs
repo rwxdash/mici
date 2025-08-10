@@ -1,15 +1,22 @@
+use colored::Colorize;
+use indoc::printdoc;
+
+use crate::utils::print::print_general_help;
 use crate::utils::print::print_individual_help;
 
+use std::path;
 use std::process;
 
 pub fn catch_help_and_version_commands(args: &Vec<String>) {
     match &args.get(1).map(String::as_ref) {
         Some("-v" | "--version" | "version") => {
-            println!("caught version");
-            process::exit(0);
-        }
-        Some("-d" | "--doc" | "doc") => {
-            println!("caught doc");
+            printdoc! {"
+                {} {} {}
+            ",
+                ">".bright_black(),
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            };
             process::exit(0);
         }
         _ => {}
@@ -20,9 +27,9 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             let command_path: &[String] = &args[1..args.len() - 1];
 
             if command_path.is_empty() {
-                println!("caught general help")
+                print_general_help();
             } else {
-                print_individual_help(&command_path.join("/"));
+                print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
             }
 
             process::exit(0);

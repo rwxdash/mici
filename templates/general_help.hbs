@@ -1,13 +1,30 @@
-{{ app name }} {{ version }}
-{{ authors }}
+{{!-- 80 chars length and 5 empty new lines for consistency --}}
+MINICI()                                                                      @@
 
-{{ description}}
 
-MAINTENANCE:
-{{ maintenance commands }}
 
-COMMANDS:
-{{ commands }}
 
-SUBCOMMANDS:
-{{ subcommands }}
+{{bold "NAME"}}
+    {{{ package_name }}} {{{ package_version }}}
+
+{{ bold "DESCRIPTION"}}
+    {{{ description }}}
+
+{{ bold "SYNOPSIS"}}
+    {{{ executable }}} <command> [options]
+
+{{ bold "COMMANDS"}}
+    {{#each commands}}
+    {{ bold (pad_right name 12) }}      {{ description }}
+    {{/each}}
+
+{{ bold "OPTIONS"}}
+    -h, --help                    Show help information
+    -v, --version                 Show version information
+
+{{ bold "USAGE"}}
+    {{!-- Alignments are calculated and tested manually --}}
+    {{ pad_right (concat executable " init") 24 }}      Initialize minici configuration
+    {{ pad_right (concat executable " new hello") 24 }}      Create a new command called 'hello'
+    {{ pad_right (concat executable " list") 24 }}      List all available commands
+    {{{ pad_right (concat executable " <command> --help") 24 }}}      Show help for a specific command
