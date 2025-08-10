@@ -3,6 +3,7 @@
 name = "minici"
 version = "0.1.0"
 edition = "2024"
+description = "Lightweight CLI framework based on filesystem hierarchy"
 default-run = "mci"
 authors = ["Oguzhan Ozdemir <aoozdemir@live.com>"]
 exclude = [".*", "rfc/", "schemas/"]

@@ -39,6 +39,65 @@ fn pager() {
     // No-op
 }
 
+pub fn print_general_help() {
+    let mut handlebars = Handlebars::new();
+
+    let template_asset = include_bytes!("../../templates/general_help.hbs");
+
+    handlebars
+        .register_template_string("general_help", std::str::from_utf8(template_asset).unwrap())
+        .unwrap();
+
+    handlebars_helper!(bold: |p: String| p.bold().to_string());
+    handlebars_helper!(pad_right: |s: String, width: u8| format!("{:<width$}", s, width = width as usize));
+    handlebars_helper!(concat: |a: String, b: String| format!("{}{}", a, b));
+    handlebars.register_helper("bold", Box::new(bold));
+    handlebars.register_helper("pad_right", Box::new(pad_right));
+    handlebars.register_helper("concat", Box::new(concat));
+
+    use serde_json::json;
+
+    let data = json!({
+        "package_name": env!("CARGO_PKG_NAME"),
+        "package_version": env!("CARGO_PKG_VERSION"),
+        "description": env!("CARGO_PKG_DESCRIPTION"),
+        "executable": EXECUTABLE.get().unwrap(),
+        "commands": [
+            {
+                "name": "init",
+                "description": "Initializes or reconfigures a minici project"
+            },
+            {
+                "name": "fetch",
+                "description": "Synchronizes and updates local commands from remote"
+            },
+            {
+                "name": "new",
+                "description": "Creates a new command from a template"
+            },
+            {
+                "name": "list",
+                "description": "Displays available commands"
+            },
+            {
+                "name": "config",
+                "description": "Opens the configuration file in the default editor"
+            },
+            {
+                "name": "version",
+                "description": "Display version information"
+            },
+            {
+                "name": "help",
+                "description": "Display help information"
+            }
+        ]
+    });
+
+    pager();
+    println!("{}", handlebars.render("general_help", &data).unwrap());
+}
+
 pub fn print_individual_help(command: &String) {
     let mut handlebars = Handlebars::new();
 

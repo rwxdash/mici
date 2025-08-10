@@ -1,9 +1,9 @@
 use colored::Colorize;
 use indoc::printdoc;
 
+use crate::utils::print::print_general_help;
 use crate::utils::print::print_individual_help;
 
-use std::env;
 use std::path;
 use std::process;
 
@@ -27,7 +27,7 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             let command_path: &[String] = &args[1..args.len() - 1];
 
             if command_path.is_empty() {
-                println!("caught general help")
+                print_general_help();
             } else {
                 print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
             }
