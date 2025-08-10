@@ -1,4 +1,5 @@
 use crate::{
+    EXECUTABLE,
     cli::maintenance::{
         fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND, list_command::LIST_COMMAND,
         new_command::NEW_COMMAND,
@@ -108,7 +109,8 @@ pub fn print_individual_help(command: &String) {
                         let cmd_map: &mut std::collections::HashMap<&str, &str> =
                             &mut cmd.as_hash_map();
                         let synopsis: String = format!(
-                            "minici {} {}",
+                            "{} {} {}",
+                            EXECUTABLE.get().unwrap(),
                             &command.replace(path::MAIN_SEPARATOR, " "),
                             "[options]".bright_black()
                         );
@@ -158,22 +160,25 @@ pub fn print_individual_help(command: &String) {
             } else if folder_exist {
                 printdoc! {"
                     {} {} isn't a valid command, it's a directory!
-                      Run {} to see the available commands
+                      Run {} {} to see the available commands
                 ",
                     ">".bright_black(),
                     &command,
-                    "minici --help".bright_yellow(),
+                    EXECUTABLE.get().unwrap(),
+                    "--help".bright_yellow(),
                 }
             } else {
                 printdoc! {"
                     {} Couldn't find the given command at {}
-                      Try creating a new command with {}
-                      or run {} to see the available commands
+                      Try creating a new command with {} {}
+                      or run {} {} to see the available commands
                 ",
                     ">".bright_black(),
                     &as_file.underline().bold(),
-                    "minici new".bright_yellow(),
-                    "minici --help".bright_yellow(),
+                    EXECUTABLE.get().unwrap(),
+                    "new".bright_yellow(),
+                    EXECUTABLE.get().unwrap(),
+                    "--help".bright_yellow(),
                 }
             }
         }

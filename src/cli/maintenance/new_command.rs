@@ -1,3 +1,4 @@
+use crate::EXECUTABLE;
 use crate::cli::maintenance::base_command::BaseCommand;
 use crate::cli::schemas::v1::{
     CommandSchema, CommandSchemaConfiguration, CommandSchemaStep, CommandSchemaStepRun,
@@ -43,11 +44,12 @@ impl NewCommand {
                     {} Can't create a new command.
 
                       I don't see any existing configuration at {}
-                      Try running {}
+                      Try running {} {}
                 ",
                 ">".bright_black(),
                 &get_project_folder().underline().bold(),
-                "minici init".bright_yellow().bold(),
+                EXECUTABLE.get().unwrap(),
+                "init".bright_yellow().bold(),
             };
             return Ok(());
         }
@@ -106,19 +108,16 @@ impl NewCommand {
         let yaml_content = serde_yaml::to_string(&schema)?;
         fs::write(&file_path, yaml_content)?;
 
-        println!(
-            "{} Created new command at {}",
+        printdoc! {"
+                {} Created new command at {}
+                  Edit the file to customize your command and
+                  Run {} {} to use it
+            ",
             ">".bright_green(),
-            file_path.to_string_lossy().bright_cyan().bold()
-        );
-
-        println!(
-            "{} Edit the file to customize your command, then run {} to test it",
-            ">".bright_black(),
-            format!("minici {}", &command_path.replace(MAIN_SEPARATOR, " "))
-                .bright_yellow()
-                .bold()
-        );
+            file_path.to_string_lossy().bright_cyan().bold(),
+            EXECUTABLE.get().unwrap().bright_yellow().bold(),
+            &command_path.replace(MAIN_SEPARATOR, " ").bright_yellow().bold(),
+        };
 
         Ok(())
     }

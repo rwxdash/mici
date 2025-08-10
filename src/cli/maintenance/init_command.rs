@@ -1,6 +1,7 @@
 extern crate colored;
 extern crate serde;
 
+use crate::EXECUTABLE;
 use crate::cli::maintenance::base_command::BaseCommand;
 use crate::cli::maintenance::base_command::InitConfiguration;
 use crate::utils::fs::*;
@@ -141,12 +142,13 @@ impl InitCommand {
         printdoc! {"
             {} Wrote the given configuration at {}{}
               You can update this configuration manually by editing this file
-              Run {} to pull your commands from this repository
+              Run {} {} to pull your commands from this repository
             ",
             ">".bright_black(),
             &get_project_folder().blue().bold(),
             "/config.yml".blue().bold(),
-            "minici fetch".blue().bold(),
+            EXECUTABLE.get().unwrap(),
+            "fetch".blue().bold(),
         }
 
         return Ok(());

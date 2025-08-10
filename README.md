@@ -1,27 +1,35 @@
 # minici
 
-`minici` is a lightweight CLI framework that automatically discovers and executes your commands based on filesystem hierarchy.
+`minici` (or `mci`) is a lightweight CLI framework that automatically discovers and executes your commands based on filesystem hierarchy.
 
 Define your commands as YAML files and `minici` handles the CLI interface and execution for you.
 
 ## Quick Start
 
-Run `minici --help` to view what's available.
+Make sure `Rust` is installed. See [#install](#install) for more details.
+
+```bash
+# Install minici using Cargo
+# This will install `minici` and `mci` as executables.
+cargo install minici
+```
+
+Run `minici --help` or `mci --help` to see what's available.
 
 ```bash
 # Initialize minici
-minici init
+mci init
 
 # Create your first command and edit if needed
 # at `~/.minici/jobs/commands/hello.yml`
-minici new hello
+mci new hello
 
 # See what it is with --help
 # Pager can be disabled with `NOPAGER=1` environment variable.
-minici hello --help
+mci hello --help
 
 # Run it
-minici hello
+mci hello
 ```
 
 ## Why minici?
@@ -46,14 +54,14 @@ minici hello
 └── jobs
     ├── commands
     │   ├── deploy
-    │   │   ├── terraform.yml          # minici deploy terraform
+    │   │   ├── terraform.yml          # mci deploy terraform
     │   │   └── frontend
-    │   │       ├── staging.yml        # minici deploy frontend staging
-    │   │       └── production.yml     # minici deploy frontend production
+    │   │       ├── staging.yml        # mci deploy frontend staging
+    │   │       └── production.yml     # mci deploy frontend production
     │   ├── database
-    │   │   ├── backup.yml             # minici database backup
-    │   │   └── migrate.yml            # minici database migrate
-    │   └── hello.yml                  # minici hello
+    │   │   ├── backup.yml             # mci database backup
+    │   │   └── migrate.yml            # mci database migrate
+    │   └── hello.yml                  # mci hello
     │
     └── scripts                        # Importable as (TO_BE_DECIDED)
         ├── hello.py                   # ${scripts/hello.py}

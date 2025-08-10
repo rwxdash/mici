@@ -1,6 +1,5 @@
 pub mod cli;
 pub mod utils;
-
 extern crate dirs;
 extern crate getopts;
 extern crate handlebars;
@@ -20,11 +19,17 @@ use getopts::Options;
 use indoc::printdoc;
 use std::env;
 use std::path::Path;
+use std::sync::OnceLock;
 
 static PROJECT_DIR: &str = ".minici";
+static EXECUTABLE: OnceLock<String> = OnceLock::new();
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    // Set which executable is called the command
+    let executable: String = args[0].clone();
+    EXECUTABLE.set(executable).unwrap();
 
     // override colorize to successfully pass styles to the pager
     colored::control::set_override(true);
@@ -120,24 +125,26 @@ fn main() {
                 printdoc! {"
                     {} This is {}!
                       Found an existing configuration at {}
-                      Try running {} to see what's available
+                      Try running {} {} to see what's available
                 ",
                     ">".bright_black(),
-                    "minici".underline().bold(),
+                    EXECUTABLE.get().unwrap().underline().bold(),
                     &get_project_folder().underline().bold(),
-                    "minici --help".bright_yellow().bold(),
+                    EXECUTABLE.get().unwrap().bright_yellow().bold(),
+                    "--help".bright_yellow().bold(),
                 };
             } else {
                 printdoc! {"
                     {} This is {}!
 
                       I don't see any existing configuration at {}
-                      Try running {}
+                      Try running {} {} to initialize minici
                 ",
                     ">".bright_black(),
-                    "minici".underline().bold(),
+                    EXECUTABLE.get().unwrap().underline().bold(),
                     &get_project_folder().underline().bold(),
-                    "minici init".bright_yellow().bold(),
+                    EXECUTABLE.get().unwrap().bright_yellow().bold(),
+                    "init".bright_yellow().bold(),
                 };
             }
         }

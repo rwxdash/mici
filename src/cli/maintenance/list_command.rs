@@ -2,6 +2,7 @@ use colored::Colorize;
 use indoc::printdoc;
 
 use crate::{
+    EXECUTABLE,
     cli::maintenance::base_command::BaseCommand,
     utils::fs::{create_folder_at, get_commands_folder, get_project_folder},
 };
@@ -174,7 +175,10 @@ impl ListCommand {
 
             if let Some(previous_prefix) = current_prefix {
                 if command_prefix != previous_prefix {
-                    println!("  {}", "------".bright_black());
+                    println!(
+                        "  {}",
+                        "-".repeat(EXECUTABLE.get().unwrap().len()).bright_black()
+                    );
                 }
             }
 
@@ -182,7 +186,7 @@ impl ListCommand {
 
             println!(
                 "  {} {}",
-                "minici".bright_black(),
+                EXECUTABLE.get().unwrap().bright_black(),
                 command.replace(path::MAIN_SEPARATOR, " ")
             );
         }
@@ -198,11 +202,12 @@ impl ListCommand {
                     {} Can't list commands.
 
                       I don't see any existing configuration at {}
-                      Try running {}
+                      Try running {} {}
                 ",
                 ">".bright_black(),
                 &get_project_folder().underline().bold(),
-                "minici init".bright_yellow().bold(),
+                EXECUTABLE.get().unwrap(),
+                "init".bright_yellow().bold(),
             };
             return Ok(());
         }

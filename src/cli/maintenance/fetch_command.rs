@@ -6,8 +6,7 @@ use crate::utils::fs::{
     clear_jobs_folder, copy_directory, create_tmp_folder, get_config_file, get_jobs_folder,
     get_project_folder,
 };
-use git2::CredentialType;
-use git2::{Cred, RemoteCallbacks};
+use git2::{Cred, CredentialType, RemoteCallbacks};
 use std::error::Error;
 use std::fs;
 use std::path::Path;
