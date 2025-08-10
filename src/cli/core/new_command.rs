@@ -1,5 +1,5 @@
 use crate::EXECUTABLE;
-use crate::cli::maintenance::base_command::BaseCommand;
+use crate::cli::core::base_command::BaseCommand;
 use crate::cli::schemas::v1::{
     CommandSchema, CommandSchemaConfiguration, CommandSchemaStep, CommandSchemaStepRun,
 };

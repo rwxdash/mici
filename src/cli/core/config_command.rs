@@ -1,4 +1,4 @@
-use crate::cli::maintenance::base_command::BaseCommand;
+use crate::cli::core::base_command::BaseCommand;
 use crate::utils::fs::*;
 use std::env;
 use std::error::Error;

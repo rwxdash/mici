@@ -1,2 +1,2 @@
-pub mod maintenance;
+pub mod core;
 pub mod schemas;

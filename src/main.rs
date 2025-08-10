@@ -8,9 +8,9 @@ extern crate serde_json;
 #[cfg(not(target_os = "windows"))]
 extern crate pager;
 
-use crate::cli::maintenance::{base_command::InitConfiguration, init_command::INIT_COMMAND};
+use crate::cli::core::{base_command::InitConfiguration, init_command::INIT_COMMAND};
 use crate::utils::{checks::catch_help_and_version_commands, fs::*};
-use cli::maintenance::{
+use cli::core::{
     config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, list_command::LIST_COMMAND,
     new_command::NEW_COMMAND,
 };

@@ -1,7 +1,7 @@
 extern crate colored;
 
-use crate::cli::maintenance::base_command::BaseCommand;
-use crate::cli::maintenance::base_command::InitConfiguration;
+use crate::cli::core::base_command::BaseCommand;
+use crate::cli::core::base_command::InitConfiguration;
 use crate::utils::fs::{
     clear_jobs_folder, copy_directory, create_tmp_folder, get_config_file, get_jobs_folder,
     get_project_folder,

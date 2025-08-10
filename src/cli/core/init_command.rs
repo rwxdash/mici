@@ -2,8 +2,8 @@ extern crate colored;
 extern crate serde;
 
 use crate::EXECUTABLE;
-use crate::cli::maintenance::base_command::BaseCommand;
-use crate::cli::maintenance::base_command::InitConfiguration;
+use crate::cli::core::base_command::BaseCommand;
+use crate::cli::core::base_command::InitConfiguration;
 use crate::utils::fs::*;
 use colored::*;
 use dialoguer::{Input, theme::ColorfulTheme};

@@ -1,6 +1,6 @@
 use crate::{
     EXECUTABLE,
-    cli::maintenance::{
+    cli::core::{
         config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
         list_command::LIST_COMMAND, new_command::NEW_COMMAND,
     },

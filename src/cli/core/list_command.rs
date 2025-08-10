@@ -3,7 +3,7 @@ use indoc::printdoc;
 
 use crate::{
     EXECUTABLE,
-    cli::maintenance::base_command::BaseCommand,
+    cli::core::base_command::BaseCommand,
     utils::fs::{create_folder_at, get_commands_folder, get_project_folder},
 };
 use std::{
