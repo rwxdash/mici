@@ -117,15 +117,17 @@ impl InitCommand {
                 .unwrap();
 
             init_configuration = InitConfiguration {
-                set_upstream: Some(true),
                 upstream_url: Some(upstream_url),
                 upstream_cmd_path: Some(upstream_cmd_path),
+                disable_cli_color: Some(false),
+                disable_pager: Some(false),
             };
         } else {
             init_configuration = InitConfiguration {
-                set_upstream: Some(false),
                 upstream_url: None,
                 upstream_cmd_path: None,
+                disable_cli_color: Some(false),
+                disable_pager: Some(false),
             };
         }
 

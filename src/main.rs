@@ -8,6 +8,7 @@ extern crate serde_json;
 #[cfg(not(target_os = "windows"))]
 extern crate pager;
 
+use crate::cli::maintenance::base_command::InitConfiguration;
 use crate::cli::maintenance::init_command::INIT_COMMAND;
 use crate::utils::checks::catch_help_and_version_commands;
 use crate::utils::fs::*;
@@ -17,9 +18,9 @@ use cli::maintenance::new_command::NEW_COMMAND;
 use colored::Colorize;
 use getopts::Options;
 use indoc::printdoc;
-use std::env;
 use std::path::Path;
 use std::sync::OnceLock;
+use std::{env, fs};
 
 static PROJECT_DIR: &str = ".minici";
 static EXECUTABLE: OnceLock<String> = OnceLock::new();
@@ -31,8 +32,30 @@ fn main() {
     let executable: String = args[0].clone();
     EXECUTABLE.set(executable).unwrap();
 
-    // override colorize to successfully pass styles to the pager
-    colored::control::set_override(true);
+    // Read existing configuration file
+    let config_exist = Path::new(&get_config_file()).exists();
+    if config_exist {
+        let config_yaml_str = fs::read_to_string(&get_config_file()).unwrap();
+        let config: InitConfiguration = serde_yaml::from_str(&config_yaml_str).unwrap();
+
+        // Control terminal colors
+        match config.disable_cli_color {
+            Some(true) => {
+                colored::control::set_override(false);
+            }
+            _ => {
+                colored::control::set_override(true);
+            }
+        }
+
+        // Control pager
+        match config.disable_pager {
+            Some(true) => unsafe {
+                std::env::set_var("NOPAGER", "1");
+            },
+            _ => {}
+        }
+    }
 
     catch_help_and_version_commands(&args);
 

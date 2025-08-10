@@ -25,7 +25,7 @@ mci init
 mci new hello
 
 # See what it is with --help
-# Pager can be disabled with `NOPAGER=1` environment variable.
+# Pager can be disabled with `disable_pager: true` in the `config.yml`.
 mci hello --help
 
 # Run it

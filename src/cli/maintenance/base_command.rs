@@ -27,9 +27,10 @@ impl ExportAsHashMap for BaseCommand {
 
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct InitConfiguration {
-    pub set_upstream: Option<bool>,
     pub upstream_url: Option<String>,
     pub upstream_cmd_path: Option<String>,
+    pub disable_cli_color: Option<bool>,
+    pub disable_pager: Option<bool>,
 }
 
 impl Serialize for InitConfiguration {
@@ -37,9 +38,11 @@ impl Serialize for InitConfiguration {
     where
         S: Serializer,
     {
-        let mut s = serializer.serialize_struct("InitConfiguration", 2)?;
+        let mut s = serializer.serialize_struct("InitConfiguration", 4)?;
         s.serialize_field("upstream_url", &self.upstream_url)?;
         s.serialize_field("upstream_cmd_path", &self.upstream_cmd_path)?;
+        s.serialize_field("disable_cli_color", &self.disable_cli_color)?;
+        s.serialize_field("disable_pager", &self.disable_pager)?;
         s.end()
     }
 }
