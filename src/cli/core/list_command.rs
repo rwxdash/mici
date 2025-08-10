@@ -56,7 +56,8 @@ impl ListCommand {
             let file_name = entry.file_name();
             let file_name_str = file_name.to_string_lossy();
 
-            if path.is_file() && file_name_str.ends_with(".yml") || file_name_str.ends_with(".yaml")
+            if path.is_file()
+                && (file_name_str.ends_with(".yml") || file_name_str.ends_with(".yaml"))
             {
                 let command_name = file_name_str
                     .trim_end_matches(".yml")
