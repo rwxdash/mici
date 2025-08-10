@@ -1,12 +1,22 @@
+use colored::Colorize;
+use indoc::printdoc;
+
 use crate::utils::print::print_individual_help;
 
+use std::env;
 use std::path;
 use std::process;
 
 pub fn catch_help_and_version_commands(args: &Vec<String>) {
     match &args.get(1).map(String::as_ref) {
         Some("-v" | "--version" | "version") => {
-            println!("caught version");
+            printdoc! {"
+                {} {} {}
+            ",
+                ">".bright_black(),
+                env!("CARGO_PKG_NAME"),
+                env!("CARGO_PKG_VERSION")
+            };
             process::exit(0);
         }
         _ => {}
