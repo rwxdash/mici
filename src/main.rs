@@ -8,19 +8,16 @@ extern crate serde_json;
 #[cfg(not(target_os = "windows"))]
 extern crate pager;
 
-use crate::cli::maintenance::base_command::InitConfiguration;
-use crate::cli::maintenance::init_command::INIT_COMMAND;
-use crate::utils::checks::catch_help_and_version_commands;
-use crate::utils::fs::*;
-use cli::maintenance::fetch_command::FETCH_COMMAND;
-use cli::maintenance::list_command::LIST_COMMAND;
-use cli::maintenance::new_command::NEW_COMMAND;
+use crate::cli::maintenance::{base_command::InitConfiguration, init_command::INIT_COMMAND};
+use crate::utils::{checks::catch_help_and_version_commands, fs::*};
+use cli::maintenance::{
+    config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, list_command::LIST_COMMAND,
+    new_command::NEW_COMMAND,
+};
 use colored::Colorize;
 use getopts::Options;
 use indoc::printdoc;
-use std::path::Path;
-use std::sync::OnceLock;
-use std::{env, fs};
+use std::{env, fs, path::Path, sync::OnceLock};
 
 static PROJECT_DIR: &str = ".minici";
 static EXECUTABLE: OnceLock<String> = OnceLock::new();
@@ -111,6 +108,11 @@ fn main() {
                     println!("> {}\n", err);
                     return;
                 }
+            };
+        }
+        Some("config") => {
+            match CONFIG_COMMAND.run() {
+                Ok(()) | Err(_) => return,
             };
         }
         Some("list") => {

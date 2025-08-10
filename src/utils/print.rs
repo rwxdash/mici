@@ -1,8 +1,8 @@
 use crate::{
     EXECUTABLE,
     cli::maintenance::{
-        fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND, list_command::LIST_COMMAND,
-        new_command::NEW_COMMAND,
+        config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
+        list_command::LIST_COMMAND, new_command::NEW_COMMAND,
     },
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
@@ -70,6 +70,15 @@ pub fn print_individual_help(command: &String) {
                 "{}",
                 handlebars
                     .render("individual_help", &INIT_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
+        "config" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &CONFIG_COMMAND.base.as_hash_map())
                     .unwrap(),
             );
         }
