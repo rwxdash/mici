@@ -26,7 +26,11 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Set which executable is called the command
-    let executable: String = args[0].clone();
+    let executable: String = Path::new(&args[0])
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("minici")
+        .to_string();
     EXECUTABLE.set(executable).unwrap();
 
     // Read existing configuration file
