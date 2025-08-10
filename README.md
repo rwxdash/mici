@@ -48,6 +48,8 @@ mci hello
 
 ## How it works
 
+Create your commands as YAML files in a directory hierarchy.
+
 ```
 ~/.minici
 ├── config.yml                         # Configuration file
@@ -68,7 +70,7 @@ mci hello
         └── run.sh                     # ${scripts/run.sh}
 ```
 
-Each command is a YAML file with CI-like attributes - environment variables, confirmation prompts, parallel execution, and more.
+Each YAML file has CI-like attributes - environment variables, confirmation prompts, parallel execution, and more; allowing `minici` to customize your run of that command and generate `help` documentation based on the available information.
 
 ```yaml
 version: "1.0"
@@ -123,7 +125,8 @@ cargo install minici
 ### From source
 
 ```bash
-git clone git@github.com:rwxdash/minici.git && cd $_
+git clone git@github.com:rwxdash/minici.git
+cd ./minici
 
 cargo install --path .
 ```
