@@ -164,6 +164,7 @@ pub fn print_individual_help(command: &String) {
                 .join(&command)
                 .to_string_lossy()
                 .into_owned();
+            // TODO: This needs to support both .yml and .yaml
             let as_file: String = Path::new(&get_commands_folder())
                 .join(format!("{}.yml", &command))
                 .to_string_lossy()
@@ -184,36 +185,39 @@ pub fn print_individual_help(command: &String) {
                         );
                         cmd_map.insert("synopsis", &synopsis);
 
-                        let mut options: String = String::from("");
-                        for opt in cmd.configuration.options.iter().flatten() {
-                            let flag_type: &str;
-                            if opt.flag.unwrap() {
-                                flag_type = "(flag)";
-                            } else {
-                                flag_type = "(option)";
-                            }
+                        let options: String = String::from("");
+                        //
+                        // TODO: Refactor this help output
+                        //
+                        //                     for opt in cmd.inputs.iter().flatten() {
+                        //                         let flag_type: &str;
+                        //                         if opt. .unwrap() {
+                        //                             flag_type = "(flag)";
+                        //                         } else {
+                        //                             flag_type = "(option)";
+                        //                         }
 
-                            let mut flags: String = String::from("");
-                            if opt.short.is_some() {
-                                flags.push_str(
-                                    format!("-{}, ", opt.short.as_ref().unwrap()).as_str(),
-                                )
-                            }
-                            flags.push_str(format!("--{}", opt.long.as_str()).as_str());
+                        //                         let mut flags: String = String::from("");
+                        //                         if opt.short.is_some() {
+                        //                             flags.push_str(
+                        //                                 format!("-{}, ", opt.short.as_ref().unwrap()).as_str(),
+                        //                             )
+                        //                         }
+                        //                         flags.push_str(format!("--{}", opt.long.as_str()).as_str());
 
-                            options.push_str(
-                                format!(
-                                    "
-    {:<16} {}
-        {}
-                                    ",
-                                    flags,
-                                    flag_type.bright_black(),
-                                    opt.description.as_ref().unwrap().as_str()
-                                )
-                                .as_str(),
-                            );
-                        }
+                        //                         options.push_str(
+                        //                             format!(
+                        //                                 "
+                        // {:<16} {}
+                        //     {}
+                        //                                 ",
+                        //                                 flags,
+                        //                                 flag_type.bright_black(),
+                        //                                 opt.description.as_ref().unwrap().as_str()
+                        //                             )
+                        //                             .as_str(),
+                        //                         );
+                        //                     }
                         cmd_map.insert("options", &options.trim());
 
                         // println!("{}", &options);

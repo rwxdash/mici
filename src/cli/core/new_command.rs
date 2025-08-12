@@ -89,21 +89,26 @@ impl NewCommand {
         let schema = CommandSchema {
             version: "1.0".to_string(),
             name: command_path.replace(MAIN_SEPARATOR, " "),
-            description: "A new minici command".to_string(),
-            usage: format!("minici {}", command_path.replace(MAIN_SEPARATOR, " ")),
+            inputs: None,
+            description: Some("A new minici command".to_string()),
+            usage: Some(format!(
+                "minici {}",
+                command_path.replace(MAIN_SEPARATOR, " ")
+            )),
             configuration: CommandSchemaConfiguration {
                 confirm: Some(false),
-                parallel: Some(false),
                 environment: None,
-                options: None,
             },
             steps: vec![CommandSchemaStep {
                 name: "run".to_string(),
+                when: None,
                 run: CommandSchemaStepRun {
-                    shell: "bash".to_string(),
+                    shell: "/bin/bash".to_string(),
                     always: Some(false),
+                    args: None,
+                    script: None,
                     environment: None,
-                    command: "echo 'Hello, World!'".to_string(),
+                    command: Some("echo 'Hello, World!'".to_string()),
                 },
             }],
         };
