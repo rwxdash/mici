@@ -21,17 +21,18 @@ impl ListCommand {
     pub const fn new() -> Self {
         ListCommand {
             base: BaseCommand {
-                name: "minici list",
+                name: "mci list",
                 description: "Displays all available commands, optionally filtered by directory.",
-                synopsis: "minici list [<directory>...]",
+                synopsis: "mci list [<directory>...]",
                 options: "
     <directory>...      (argument)
     One or more directories to list available commands from.
     If omitted, lists commands from all available directories.
                 ",
                 usage: "
-    minici list
-        [<directory>...]
+    mci list            # Lists all the commands
+    mci list deploy     # Lists commands under `.../deploy/`
+    ...
                 ",
             },
         }

@@ -20,9 +20,9 @@ impl NewCommand {
     pub const fn new() -> Self {
         NewCommand {
             base: BaseCommand {
-                name: "minici new",
+                name: "mci new",
                 description: "Creates a new command from a template.",
-                synopsis: "minici new [<command>...]",
+                synopsis: "mci new [<command>...]",
                 options: "
     <command>...        (argument)
     The path for the new command (e.g., 'project deploy').
@@ -30,8 +30,9 @@ impl NewCommand {
     If omitted, you will be prompted for the path.
                 ",
                 usage: "
-    minici new
-        [<command>...]
+    mci new             # Prompts for creating a new command
+    mci new deploy      # Creates a command without prompting at given path
+                        # (i.e., .../deploy.yml)
                 ",
             },
         }
@@ -91,10 +92,7 @@ impl NewCommand {
             name: command_path.replace(MAIN_SEPARATOR, " "),
             inputs: None,
             description: Some("A new minici command".to_string()),
-            usage: Some(format!(
-                "minici {}",
-                command_path.replace(MAIN_SEPARATOR, " ")
-            )),
+            usage: Some(format!("mci {}", command_path.replace(MAIN_SEPARATOR, " "))),
             configuration: CommandSchemaConfiguration {
                 confirm: Some(false),
                 environment: None,

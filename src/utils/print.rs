@@ -1,8 +1,8 @@
 use crate::{
     EXECUTABLE,
     cli::core::{
-        config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-        list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+        config_command::CONFIG_COMMAND, edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND,
+        init_command::INIT_COMMAND, list_command::LIST_COMMAND, new_command::NEW_COMMAND,
     },
     utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
 };
@@ -76,6 +76,10 @@ pub fn print_general_help() {
                 "description": "Creates a new command from a template"
             },
             {
+                "name": "edit",
+                "description": "Opens the given command file in the default editor"
+            },
+            {
                 "name": "list",
                 "description": "Displays available commands"
             },
@@ -114,30 +118,12 @@ pub fn print_individual_help(command: &String) {
     handlebars.register_helper("bold", Box::new(bold));
 
     match command.as_ref() {
-        "new" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &NEW_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
         "init" => {
             pager();
             println!(
                 "{}",
                 handlebars
                     .render("individual_help", &INIT_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        "config" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &CONFIG_COMMAND.base.as_hash_map())
                     .unwrap(),
             );
         }
@@ -150,12 +136,39 @@ pub fn print_individual_help(command: &String) {
                     .unwrap(),
             );
         }
+        "new" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &NEW_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
+        "edit" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &EDIT_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
         "list" => {
             pager();
             println!(
                 "{}",
                 handlebars
                     .render("individual_help", &LIST_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            );
+        }
+        "config" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &CONFIG_COMMAND.base.as_hash_map())
                     .unwrap(),
             );
         }

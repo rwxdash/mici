@@ -8,11 +8,13 @@ extern crate serde_json;
 #[cfg(not(target_os = "windows"))]
 extern crate pager;
 
-use crate::cli::core::{base_command::InitConfiguration, init_command::INIT_COMMAND};
-use crate::utils::{checks::catch_help_and_version_commands, fs::*};
-use cli::core::{
-    config_command::CONFIG_COMMAND, fetch_command::FETCH_COMMAND, list_command::LIST_COMMAND,
-    new_command::NEW_COMMAND,
+use crate::{
+    cli::core::{
+        base_command::InitConfiguration, config_command::CONFIG_COMMAND,
+        edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
+        list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+    },
+    utils::{checks::catch_help_and_version_commands, fs::*},
 };
 use colored::Colorize;
 use getopts::Options;
@@ -114,9 +116,22 @@ fn main() {
                 }
             };
         }
-        Some("config") => {
-            match CONFIG_COMMAND.run() {
-                Ok(()) | Err(_) => return,
+        Some("edit") => {
+            let matches = match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+            let command_args = matches.free[1..].to_vec();
+
+            match EDIT_COMMAND.run(command_args) {
+                Ok(()) => return,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
             };
         }
         Some("list") => {
@@ -130,6 +145,11 @@ fn main() {
 
             let command_args = matches.free[1..].to_vec();
             match LIST_COMMAND.run(command_args) {
+                Ok(()) | Err(_) => return,
+            };
+        }
+        Some("config") => {
+            match CONFIG_COMMAND.run() {
                 Ok(()) | Err(_) => return,
             };
         }

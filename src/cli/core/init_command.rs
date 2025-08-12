@@ -26,17 +26,17 @@ impl InitCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "minici init",
-                description: "Initializes a new minici project or reconfigures an existing setup.",
-                synopsis: "minici init [options]",
+                name: "mci init",
+                description: "Initializes a new mci project or reconfigures an existing setup.",
+                synopsis: "mci init [options]",
                 options: "
     --clean     (flag)
-    Remove any existing minici configuration and perform a fresh, empty setup.
+    Remove any existing mci configuration and perform a fresh setup.
     Use this to reset your environment.
                 ",
                 usage: "
-    minici init
-        [--clean]
+    mci init            # Initialize a new project if it doesn't exist
+    mci init --clean    # Initialize a new project from scratch
                 ",
             },
         }
@@ -147,8 +147,8 @@ impl InitCommand {
               Run {} {} to pull your commands from this repository
             ",
             ">".bright_black(),
-            &get_project_folder().blue().bold(),
-            "/config.yml".blue().bold(),
+            &get_project_folder().bright_cyan().bold(),
+            "/config.yml".bright_cyan().bold(),
             EXECUTABLE.get().unwrap(),
             "fetch".blue().bold(),
         }
