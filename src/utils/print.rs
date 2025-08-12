@@ -177,47 +177,71 @@ pub fn print_individual_help(command: &String) {
                     Ok(cmd) => {
                         let cmd_map: &mut std::collections::HashMap<&str, &str> =
                             &mut cmd.as_hash_map();
-                        let synopsis: String = format!(
-                            "{} {} {}",
-                            EXECUTABLE.get().unwrap(),
-                            &command.replace(path::MAIN_SEPARATOR, " "),
-                            "[options]".bright_black()
-                        );
-                        cmd_map.insert("synopsis", &synopsis);
 
-                        let options: String = String::from("");
-                        //
-                        // TODO: Refactor this help output
-                        //
-                        //                     for opt in cmd.inputs.iter().flatten() {
-                        //                         let flag_type: &str;
-                        //                         if opt. .unwrap() {
-                        //                             flag_type = "(flag)";
-                        //                         } else {
-                        //                             flag_type = "(option)";
-                        //                         }
+                        let mut options: String = String::new();
+                        let synopsis: String;
 
-                        //                         let mut flags: String = String::from("");
-                        //                         if opt.short.is_some() {
-                        //                             flags.push_str(
-                        //                                 format!("-{}, ", opt.short.as_ref().unwrap()).as_str(),
-                        //                             )
-                        //                         }
-                        //                         flags.push_str(format!("--{}", opt.long.as_str()).as_str());
+                        if let Some(inputs) = &cmd.inputs {
+                            synopsis = format!(
+                                "{} {} {}",
+                                EXECUTABLE.get().unwrap(),
+                                &command.replace(path::MAIN_SEPARATOR, " "),
+                                "[options]".bright_black()
+                            );
 
-                        //                         options.push_str(
-                        //                             format!(
-                        //                                 "
-                        // {:<16} {}
-                        //     {}
-                        //                                 ",
-                        //                                 flags,
-                        //                                 flag_type.bright_black(),
-                        //                                 opt.description.as_ref().unwrap().as_str()
-                        //                             )
-                        //                             .as_str(),
-                        //                         );
-                        //                     }
+                            for (input_name, input_def) in inputs {
+                                let flag_type = match input_def.r#type.as_str() {
+                                    "boolean" => "(flag)",
+                                    _ => "(option)",
+                                };
+
+                                let mut flags: String = String::from("");
+                                if let Some(short) = &input_def.short {
+                                    flags.push_str(&format!("{}, ", short));
+                                }
+                                if let Some(long) = &input_def.long {
+                                    flags.push_str(long);
+                                } else {
+                                    flags.push_str(&format!("--{}", input_name));
+                                }
+
+                                let required_marker = if input_def.required.unwrap_or(false) {
+                                    " (required)".bright_red()
+                                } else {
+                                    "".normal()
+                                };
+
+                                options.push_str(&format!(
+                                    "\n    {:<16} {}{}\n        {}",
+                                    flags,
+                                    flag_type.bright_black(),
+                                    required_marker,
+                                    input_def.description
+                                ));
+
+                                if let Some(default) = &input_def.default {
+                                    options.push_str(&format!(
+                                        " (default: {})",
+                                        default.bright_blue()
+                                    ));
+                                }
+
+                                if let Some(choices) = &input_def.options {
+                                    options.push_str(&format!(
+                                        " (choices: {})",
+                                        choices.join(", ").bright_cyan()
+                                    ));
+                                }
+                            }
+                        } else {
+                            // If there are no options...
+                            synopsis = format!(
+                                "{} {}",
+                                EXECUTABLE.get().unwrap(),
+                                &command.replace(path::MAIN_SEPARATOR, " "),
+                            );
+                        }
+                        cmd_map.insert("synopsis", &synopsis.trim());
                         cmd_map.insert("options", &options.trim());
 
                         // println!("{}", &options);

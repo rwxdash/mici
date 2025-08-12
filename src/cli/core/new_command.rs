@@ -103,7 +103,7 @@ impl NewCommand {
                 name: "run".to_string(),
                 when: None,
                 run: CommandSchemaStepRun {
-                    shell: "/bin/bash".to_string(),
+                    shell: Some("/bin/bash".to_string()),
                     always: Some(false),
                     args: None,
                     script: None,
