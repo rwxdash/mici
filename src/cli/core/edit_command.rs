@@ -128,7 +128,7 @@ impl EditCommand {
             let status = cmd.status()?;
 
             if !status.success() {
-                return Err(format!("Failed to open config file with editor '{}'", editor).into());
+                return Err(format!("Failed to open command file with editor '{}'", editor).into());
             }
         }
 

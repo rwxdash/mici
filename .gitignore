@@ -11,3 +11,6 @@
 
 /schemas/
 /tmp/
+
+# VSCode Workspace Settings
+*.code-workspace
