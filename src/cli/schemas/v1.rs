@@ -43,6 +43,7 @@ pub struct CommandSchemaConfiguration {
     #[serde(default = "default_schema_configuration_confirm")]
     pub confirm: Option<bool>,
     pub environment: Option<BTreeMap<String, Option<String>>>,
+    pub working_directory: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -62,6 +63,7 @@ pub struct CommandSchemaStepRun {
     pub command: Option<String>,
     pub script: Option<String>,
     pub args: Option<CommandSchemaStepRunArgsConfig>,
+    pub working_directory: Option<String>,
 }
 
 // Traits

@@ -150,8 +150,8 @@ impl ListCommand {
         // 2. Commands with depth = 0 appear at top
         // 3. Sort alphabetically within each group (depth = 0 vs depth > 0)
         sorted_commands.sort_by(|a, b| {
-            let a_depth = a.matches(path::MAIN_SEPARATOR).count();
-            let b_depth = b.matches(path::MAIN_SEPARATOR).count();
+            let a_depth = a.matches(path::MAIN_SEPARATOR_STR).count();
+            let b_depth = b.matches(path::MAIN_SEPARATOR_STR).count();
 
             match (a_depth == 0, b_depth == 0) {
                 (true, false) => std::cmp::Ordering::Less,
@@ -163,11 +163,11 @@ impl ListCommand {
         let mut current_prefix: Option<String> = None::<String>;
 
         for command in &sorted_commands {
-            let command_depth = command.matches(path::MAIN_SEPARATOR).count();
+            let command_depth = command.matches(path::MAIN_SEPARATOR_STR).count();
 
             let command_prefix = if command_depth > 0 {
                 command
-                    .split(path::MAIN_SEPARATOR)
+                    .split(path::MAIN_SEPARATOR_STR)
                     .next()
                     .unwrap_or("")
                     .to_string()
@@ -189,7 +189,7 @@ impl ListCommand {
             println!(
                 "  {} {}",
                 EXECUTABLE.get().unwrap().bright_black(),
-                command.replace(path::MAIN_SEPARATOR, " ")
+                command.replace(path::MAIN_SEPARATOR_STR, " ")
             );
         }
         println!();

@@ -4,7 +4,11 @@ use crate::{
         config_command::CONFIG_COMMAND, edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND,
         init_command::INIT_COMMAND, list_command::LIST_COMMAND, new_command::NEW_COMMAND,
     },
-    utils::{fs::get_commands_folder, traits::ExportAsHashMap, yaml::parse_command_file},
+    utils::{
+        fs::{get_command_file, get_commands_folder},
+        traits::ExportAsHashMap,
+        yaml::parse_command_file,
+    },
 };
 
 use colored::*;
@@ -177,16 +181,14 @@ pub fn print_individual_help(command: &String) {
                 .join(&command)
                 .to_string_lossy()
                 .into_owned();
-            // TODO: This needs to support both .yml and .yaml
-            let as_file: String = Path::new(&get_commands_folder())
-                .join(format!("{}.yml", &command))
-                .to_string_lossy()
-                .into_owned();
+
             let folder_exist: bool = Path::new(&as_folder).exists();
-            let command_exist: bool = Path::new(&as_file).exists();
+
+            let (command_file_path, command_file) = &get_command_file(command.to_string());
+            let command_exist: bool = command_file.is_some();
 
             if command_exist {
-                match parse_command_file(&as_file) {
+                match parse_command_file(command_file_path) {
                     Ok(cmd) => {
                         let cmd_map: &mut std::collections::HashMap<&str, &str> =
                             &mut cmd.as_hash_map();
@@ -198,7 +200,7 @@ pub fn print_individual_help(command: &String) {
                             synopsis = format!(
                                 "{} {} {}",
                                 EXECUTABLE.get().unwrap(),
-                                &command.replace(path::MAIN_SEPARATOR, " "),
+                                &command.replace(path::MAIN_SEPARATOR_STR, " "),
                                 "[options]".bright_black()
                             );
 
@@ -251,7 +253,7 @@ pub fn print_individual_help(command: &String) {
                             synopsis = format!(
                                 "{} {}",
                                 EXECUTABLE.get().unwrap(),
-                                &command.replace(path::MAIN_SEPARATOR, " "),
+                                &command.replace(path::MAIN_SEPARATOR_STR, " "),
                             );
                         }
                         cmd_map.insert("synopsis", &synopsis.trim());
@@ -283,7 +285,7 @@ pub fn print_individual_help(command: &String) {
                       or run {} {} to see the available commands
                 ",
                     ">".bright_black(),
-                    &as_file.underline().bold(),
+                    &command_file_path.underline().bold(),
                     EXECUTABLE.get().unwrap(),
                     "new".bright_yellow(),
                     EXECUTABLE.get().unwrap(),

@@ -8,7 +8,7 @@ use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use indoc::printdoc;
 use std::error::Error;
-use std::path::{MAIN_SEPARATOR, Path};
+use std::path::Path;
 use std::{fs, path};
 
 #[allow(dead_code)]
@@ -89,13 +89,17 @@ impl NewCommand {
         // TODO: Replace this
         let schema = CommandSchema {
             version: "1.0".to_string(),
-            name: command_path.replace(MAIN_SEPARATOR, " "),
+            name: command_path.replace(path::MAIN_SEPARATOR_STR, " "),
             inputs: None,
             description: Some("A new minici command".to_string()),
-            usage: Some(format!("mci {}", command_path.replace(MAIN_SEPARATOR, " "))),
+            usage: Some(format!(
+                "mci {}",
+                command_path.replace(path::MAIN_SEPARATOR_STR, " ")
+            )),
             configuration: CommandSchemaConfiguration {
                 confirm: Some(false),
                 environment: None,
+                working_directory: None,
             },
             steps: vec![CommandSchemaStep {
                 name: "run".to_string(),
@@ -106,6 +110,7 @@ impl NewCommand {
                     args: None,
                     script: None,
                     environment: None,
+                    working_directory: None,
                     command: Some("echo 'Hello, World!'".to_string()),
                 },
             }],
@@ -126,7 +131,7 @@ impl NewCommand {
             ">".bright_green(),
             file_path.to_string_lossy().bright_cyan().bold(),
             EXECUTABLE.get().unwrap().bright_yellow().bold(),
-            &command_path.replace(MAIN_SEPARATOR, " ").bright_yellow().bold(),
+            &command_path.replace(path::MAIN_SEPARATOR_STR, " ").bright_yellow().bold(),
         };
 
         Ok(())
@@ -148,7 +153,7 @@ impl NewCommand {
     }
 
     fn validate_path(&self, path: &str) -> Result<(), Box<dyn Error>> {
-        let separator_str = MAIN_SEPARATOR.to_string();
+        let separator_str = path::MAIN_SEPARATOR_STR.to_string();
 
         // Handle invalid formats
         // TODO: Better error messages.
