@@ -15,11 +15,8 @@ use crate::{
         edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
         list_command::LIST_COMMAND, new_command::NEW_COMMAND,
     },
-    runner::{context::ExecutionContext, runner::Runner},
-    utils::{
-        checks::catch_help_and_version_commands, fs::*, traits::ExportAsHashMap,
-        yaml::parse_command_file,
-    },
+    runner::{context::ExecutionContext, coordinator::Coordinator},
+    utils::{checks::catch_help_and_version_commands, fs::*, yaml::parse_command_file},
 };
 use colored::Colorize;
 use getopts::Options;
@@ -191,9 +188,6 @@ fn main() {
 
             match parse_command_file(command_file_path) {
                 Ok(cmd) => {
-                    // let cmd_map: &mut std::collections::HashMap<&str, &str> =
-                    //     &mut cmd.as_hash_map();
-
                     if let Some(inputs) = &cmd.inputs {
                         for (name, input) in inputs {
                             let strip_dashes = |s: &str| s.trim_start_matches('-').to_string();
@@ -275,11 +269,10 @@ fn main() {
                     println!("{:?}", &matches);
                     println!("{:?}", &matches.opt_present("dry-run"));
                     println!("{:?}", &matches.opt_str("e"));
-                    // No option '-e' defined
 
                     let context = ExecutionContext::new(&cmd, &matches);
-                    let runner = Runner::new(context, &cmd);
-                    match runner.run() {
+                    let coordinator = Coordinator::new(context, &cmd);
+                    match coordinator.run() {
                         Ok(()) => {}
                         Err(err) => {
                             println!("Execution failed: {}", err);

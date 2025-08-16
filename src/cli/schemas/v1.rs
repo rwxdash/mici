@@ -33,6 +33,8 @@ pub struct CommandSchemaInput {
     pub options: Option<Vec<String>>,
     #[serde(default = "default_schema_input_required")]
     pub required: Option<bool>,
+    #[serde(default = "default_schema_input_secret")]
+    pub secret: Option<bool>,
     pub short: Option<String>,
     pub long: Option<String>,
     pub default: Option<String>,
@@ -87,6 +89,10 @@ fn default_schema_configuration_confirm() -> Option<bool> {
 }
 
 fn default_schema_input_required() -> Option<bool> {
+    return Some(false);
+}
+
+fn default_schema_input_secret() -> Option<bool> {
     return Some(false);
 }
 

@@ -220,6 +220,12 @@ pub fn print_individual_help(command: &String) {
                                     flags.push_str(&format!("--{}", input_name));
                                 }
 
+                                let secret_marker = if input_def.secret.unwrap_or(false) {
+                                    " (secret)".bright_black()
+                                } else {
+                                    "".normal()
+                                };
+
                                 let required_marker = if input_def.required.unwrap_or(false) {
                                     " (required)".bright_red()
                                 } else {
@@ -227,9 +233,10 @@ pub fn print_individual_help(command: &String) {
                                 };
 
                                 options.push_str(&format!(
-                                    "\n    {:<16} {}{}\n        {}",
+                                    "\n    {:<16} {}{}{}\n        {}",
                                     flags,
                                     flag_type.bright_black(),
+                                    secret_marker,
                                     required_marker,
                                     input_def.description
                                 ));

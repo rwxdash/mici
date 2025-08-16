@@ -2,6 +2,7 @@ use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
 
 use crate::cli::schemas::v1::{CommandSchema, CommandSchemaConfiguration, CommandSchemaInput};
 
+#[derive(Debug)]
 pub struct ExecutionContext<'a> {
     pub inputs: &'a BTreeMap<String, CommandSchemaInput>,
     pub os_environment: BTreeMap<OsString, OsString>,
@@ -10,7 +11,7 @@ pub struct ExecutionContext<'a> {
 }
 
 impl<'a> ExecutionContext<'a> {
-    pub fn new(command: &'a CommandSchema, matches: &getopts::Matches) -> Self {
+    pub fn new(command: &'a CommandSchema, _matches: &getopts::Matches) -> Self {
         let os_environment = std::env::vars_os().collect();
         let current_directory = std::env::current_dir().expect("Failed to get working directory");
 
