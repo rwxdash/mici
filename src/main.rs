@@ -266,12 +266,8 @@ fn main() {
                         }
                     };
 
-                    println!("{:?}", &matches);
-                    println!("{:?}", &matches.opt_present("dry-run"));
-                    println!("{:?}", &matches.opt_str("e"));
-
                     let context = ExecutionContext::new(&cmd, &matches);
-                    let coordinator = Coordinator::new(context, &cmd);
+                    let coordinator = Coordinator::new(&cmd, context);
                     match coordinator.run() {
                         Ok(()) => {}
                         Err(err) => {

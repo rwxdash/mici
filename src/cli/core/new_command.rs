@@ -102,7 +102,8 @@ impl NewCommand {
                 working_directory: None,
             },
             steps: vec![CommandSchemaStep {
-                name: "run".to_string(),
+                id: "run".to_string(),
+                name: Some("run".to_string()),
                 when: None,
                 run: CommandSchemaStepRun {
                     shell: Some("/bin/bash".to_string()),

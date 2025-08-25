@@ -50,7 +50,8 @@ pub struct CommandSchemaConfiguration {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CommandSchemaStep {
-    pub name: String,
+    pub id: String,
+    pub name: Option<String>,
     pub when: Option<String>,
     pub run: CommandSchemaStepRun,
 }
