@@ -267,7 +267,8 @@ fn main() {
                     };
 
                     let context = ExecutionContext::new(&cmd, &matches);
-                    let coordinator = Coordinator::new(&cmd, context);
+                    let coordinator = Coordinator::with_context(context);
+
                     match coordinator.run() {
                         Ok(()) => {}
                         Err(err) => {

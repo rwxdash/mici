@@ -1,27 +1,25 @@
 use std::{collections::BTreeMap, ffi::OsString, path::PathBuf};
 
-use crate::cli::schemas::v1::{CommandSchema, CommandSchemaConfiguration, CommandSchemaInput};
+use crate::cli::schemas::v1::CommandSchema;
 
 #[derive(Debug)]
 pub struct ExecutionContext<'a> {
-    pub inputs: &'a BTreeMap<String, CommandSchemaInput>,
     pub os_environment: BTreeMap<OsString, OsString>,
     pub current_directory: PathBuf,
-    pub configuration: &'a CommandSchemaConfiguration,
+    pub matches: &'a getopts::Matches,
+    pub command: &'a CommandSchema,
 }
 
 impl<'a> ExecutionContext<'a> {
-    pub fn new(command: &'a CommandSchema, _matches: &getopts::Matches) -> Self {
+    pub fn new(command: &'a CommandSchema, matches: &'a getopts::Matches) -> Self {
         let os_environment = std::env::vars_os().collect();
-        let current_directory = std::env::current_dir().expect("Failed to get working directory");
-
-        let inputs = command.inputs.as_ref().expect("Inputs must be present");
+        let current_directory = std::env::current_dir().unwrap();
 
         Self {
-            inputs,
             os_environment,
             current_directory,
-            configuration: &command.configuration,
+            matches,
+            command,
         }
     }
 }

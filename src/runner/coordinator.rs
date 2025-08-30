@@ -1,28 +1,27 @@
-use crate::{cli::schemas::v1::CommandSchema, runner::context::ExecutionContext};
+use crate::runner::context::ExecutionContext;
 use dialoguer::{Confirm, theme::ColorfulTheme};
 use std::io::IsTerminal;
 
 pub struct Coordinator<'a> {
     context: ExecutionContext<'a>,
-    command: &'a CommandSchema,
 }
 
 impl<'a> Coordinator<'a> {
-    pub fn new(command: &'a CommandSchema, context: ExecutionContext<'a>) -> Self {
-        Self { context, command }
+    pub fn with_context(context: ExecutionContext<'a>) -> Self {
+        Self { context }
     }
 
     pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
         // println!("{:?}", self.context.inputs);
         // println!("{:?}", self.schema);
 
-        println!("> Starting execution of: {}", self.command.name);
+        println!("> Starting execution of: {}", self.context.command.name);
 
-        if let Some(description) = &self.command.description {
+        if let Some(description) = &self.context.command.description {
             println!("  {}", description);
         }
 
-        if self.context.configuration.confirm.unwrap() {
+        if self.context.command.configuration.confirm.unwrap() {
             let confirmation = if std::io::stdin().is_terminal() {
                 println!("> This command requires your confirmation!");
 
@@ -72,14 +71,19 @@ impl<'a> Coordinator<'a> {
             }
         }
 
-        println!("> Executing {} steps", self.command.steps.len());
+        println!("> Executing {} steps", self.context.command.steps.len());
 
         // TODO: check when/always conditions for steps
         // I'll need an expression evaluator for the full funcitonality
         // We'll skip this for now.
 
-        for (index, step) in self.command.steps.iter().enumerate() {
-            println!("> {}/{}: {}", index + 1, self.command.steps.len(), step.id);
+        for (index, step) in self.context.command.steps.iter().enumerate() {
+            println!(
+                "> {}/{}: {}",
+                index + 1,
+                self.context.command.steps.len(),
+                step.id
+            );
 
             // Exec step
 
