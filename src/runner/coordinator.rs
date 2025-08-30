@@ -1,6 +1,9 @@
-use crate::runner::context::ExecutionContext;
+use crate::{
+    cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
+    runner::context::ExecutionContext,
+};
 use dialoguer::{Confirm, theme::ColorfulTheme};
-use std::io::IsTerminal;
+use std::{io::IsTerminal, process::Command};
 
 pub struct Coordinator<'a> {
     context: ExecutionContext<'a>,
@@ -86,12 +89,98 @@ impl<'a> Coordinator<'a> {
             );
 
             // Exec step
+            let _ = self.execute_step(step);
 
             println!("  Step completed: {}", step.id);
             println!()
         }
 
         println!("Done!");
+        Ok(())
+    }
+
+    fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), Box<dyn std::error::Error>> {
+        // TODO: Handle shell not being present and default to OS choice
+        let shell = match &step.run.shell {
+            Some(s) => s.as_str(),
+            None => {
+                #[cfg(unix)]
+                {
+                    "bash"
+                }
+                #[cfg(windows)]
+                {
+                    "powershell"
+                }
+            }
+        };
+
+        let mut cmd = match &step.run.execution {
+            CommandSchemaStepRunExecution::Command { command } => {
+                let mut c = Command::new(shell);
+
+                let flag = match shell {
+                    "bash" | "sh" | "zsh" | "fish" => "-c",
+                    "powershell" | "pwsh" => "-Command",
+                    "cmd" => "/c",
+                    _ => "-c", // Default to POSIX
+                };
+
+                c.arg(flag).arg(command);
+                c
+            }
+            CommandSchemaStepRunExecution::Script { script } => {
+                let mut c = Command::new(shell);
+                c.arg(script);
+                c
+            }
+        };
+
+        // Set Working Directories
+        if let Some(command_wd) = &self.context.command.configuration.working_directory {
+            cmd.current_dir(command_wd);
+        }
+
+        if let Some(step_wd) = &step.run.working_directory {
+            cmd.current_dir(step_wd);
+        }
+
+        // Set Environment Variables
+        if let Some(command_environment_variables) = &self.context.command.configuration.environment
+        {
+            for (key, value) in command_environment_variables {
+                if let Some(val) = value {
+                    cmd.env(key, val);
+                }
+            }
+        }
+
+        if let Some(step_environment_variables) = &step.run.environment {
+            for (key, value) in step_environment_variables {
+                if let Some(val) = value {
+                    cmd.env(key, val);
+                }
+            }
+        }
+
+        let output = cmd.output()?;
+
+        if !output.stdout.is_empty() {
+            print!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+        if !output.stderr.is_empty() {
+            eprint!("{}", String::from_utf8_lossy(&output.stderr));
+        }
+
+        if !output.status.success() {
+            return Err(format!(
+                "Step '{}' failed with exit code: {:?}",
+                step.id,
+                output.status.code()
+            )
+            .into());
+        }
+
         Ok(())
     }
 }

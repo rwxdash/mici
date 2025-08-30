@@ -2,6 +2,7 @@ use crate::EXECUTABLE;
 use crate::cli::core::base_command::BaseCommand;
 use crate::cli::schemas::v1::{
     CommandSchema, CommandSchemaConfiguration, CommandSchemaStep, CommandSchemaStepRun,
+    CommandSchemaStepRunExecution,
 };
 use crate::utils::fs::{create_folder_at, get_commands_folder, get_project_folder};
 use colored::Colorize;
@@ -109,10 +110,11 @@ impl NewCommand {
                     shell: Some("/bin/bash".to_string()),
                     always: Some(false),
                     args: None,
-                    script: None,
                     environment: None,
                     working_directory: None,
-                    command: Some("echo 'Hello, World!'".to_string()),
+                    execution: CommandSchemaStepRunExecution::Command {
+                        command: "echo 'Hello, World!'".to_string(),
+                    },
                 },
             }],
         };

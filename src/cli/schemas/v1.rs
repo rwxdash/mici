@@ -13,6 +13,39 @@ pub enum CommandSchemaStepRunArgsConfig {
     Map(HashMap<String, String>),
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum CommandSchemaStepRunExecution {
+    Command { command: String },
+    Script { script: String },
+}
+
+impl CommandSchemaStepRunExecution {
+    pub fn is_command(&self) -> bool {
+        matches!(self, CommandSchemaStepRunExecution::Command { .. })
+    }
+
+    pub fn is_script(&self) -> bool {
+        matches!(self, CommandSchemaStepRunExecution::Script { .. })
+    }
+
+    pub fn get_command(&self) -> Option<&String> {
+        if let CommandSchemaStepRunExecution::Command { command } = self {
+            Some(command)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_script(&self) -> Option<&String> {
+        if let CommandSchemaStepRunExecution::Script { script } = self {
+            Some(script)
+        } else {
+            None
+        }
+    }
+}
+
 // Structs
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CommandSchema {
@@ -63,8 +96,8 @@ pub struct CommandSchemaStepRun {
     #[serde(default = "default_schema_step_run_always")]
     pub always: Option<bool>,
     pub environment: Option<BTreeMap<String, Option<String>>>,
-    pub command: Option<String>,
-    pub script: Option<String>,
+    #[serde(flatten)]
+    pub execution: CommandSchemaStepRunExecution,
     pub args: Option<CommandSchemaStepRunArgsConfig>,
     pub working_directory: Option<String>,
 }
