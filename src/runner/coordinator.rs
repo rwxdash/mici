@@ -25,7 +25,7 @@ impl<'a> Coordinator<'a> {
             println!("  {}", description);
         }
 
-        if self.context.command.configuration.confirm.unwrap() {
+        if self.context.command.configuration.confirm.unwrap_or(false) {
             let confirmation = if std::io::stdin().is_terminal() {
                 println!("> This command requires your confirmation!");
 
@@ -69,7 +69,7 @@ impl<'a> Coordinator<'a> {
                 }
             };
 
-            if confirmation == false {
+            if !confirmation {
                 println!("> Command execution cancelled...");
                 return Ok(());
             }

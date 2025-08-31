@@ -108,9 +108,10 @@ impl ExportAsHashMap for CommandSchema {
         let mut content: HashMap<&str, &str> = HashMap::new();
 
         content.insert("name", self.name.trim());
-        content.insert("description", self.description.as_ref().unwrap().trim());
-
-        // TODO: See if we can derive usage from file
+        content.insert(
+            "description",
+            self.description.as_ref().map_or("", |v| v).trim(),
+        );
         content.insert("usage", self.usage.as_ref().map_or("", |v| v).trim());
 
         return content;
