@@ -20,20 +20,20 @@ impl FetchCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "minici fetch",
+                name: "mci fetch",
                 description: "
     Synchronizes and updates local commands by cloning from a specified remote
     repository.
                 ",
-                synopsis: "minici fetch [options]",
+                synopsis: "mci fetch [options]",
                 options: "
     -b, --branch <name>     (option)
     Specify the branch to fetch and use for updating local commands.
     Defaults to the repository's default branch if not provided.
                 ",
                 usage: "
-    minici fetch
-        [-b, --branch <name>]
+    mci fetch           # Fetches default branch from remote
+    mci fetch -b dev    # Fetches `dev` branch from remote
                 ",
             },
         }

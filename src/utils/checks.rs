@@ -29,7 +29,15 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
             if command_path.is_empty() {
                 print_general_help();
             } else {
-                print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
+                match &args.get(1).map(String::as_ref) {
+                    Some("init") | Some("fetch") | Some("new") | Some("list") | Some("edit")
+                    | Some("config") => {
+                        print_individual_help(args.get(1).unwrap());
+                    }
+                    _ => {
+                        print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
+                    }
+                }
             }
 
             process::exit(0);

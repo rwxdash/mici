@@ -13,12 +13,12 @@ impl ConfigCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "minici config",
+                name: "mci config",
                 description: "Opens the configuration file in the default editor.",
-                synopsis: "minici config",
+                synopsis: "mci config",
                 options: "None",
                 usage: "
-    minici config
+    mci config          # Opens the config.yml in the default editor
                 ",
             },
         }
