@@ -10,7 +10,7 @@ pub enum CommandSchemaStepRunArgsConfig {
     // Array format: ["environment", "service", "version"]
     List(Vec<String>),
     // Object format: { "target_env": "${inputs.environment}", ... }
-    Map(HashMap<String, String>),
+    Map(BTreeMap<String, String>),
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -58,7 +58,7 @@ pub struct CommandSchema {
     pub steps: Vec<CommandSchemaStep>,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CommandSchemaInput {
     #[serde(rename = "type")]
     pub r#type: String,

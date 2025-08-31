@@ -1,9 +1,10 @@
 use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
     runner::context::ExecutionContext,
+    utils::resolver::resolve_environment_variables,
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
-use std::{io::IsTerminal, process::Command};
+use std::{collections::BTreeMap, io::IsTerminal, process::Command};
 
 pub struct Coordinator<'a> {
     context: ExecutionContext<'a>,
@@ -148,18 +149,38 @@ impl<'a> Coordinator<'a> {
         // Set Environment Variables
         if let Some(command_environment_variables) = &self.context.command.configuration.environment
         {
-            for (key, value) in command_environment_variables {
-                if let Some(val) = value {
-                    cmd.env(key, val);
-                }
+            let empty_inputs = BTreeMap::new();
+
+            let resolved_env = resolve_environment_variables(
+                command_environment_variables,
+                self.context
+                    .command
+                    .inputs
+                    .as_ref()
+                    .unwrap_or(&empty_inputs),
+                &self.context.matches,
+            );
+
+            for (key, value) in resolved_env {
+                cmd.env(key, value);
             }
         }
 
         if let Some(step_environment_variables) = &step.run.environment {
-            for (key, value) in step_environment_variables {
-                if let Some(val) = value {
-                    cmd.env(key, val);
-                }
+            let empty_inputs = BTreeMap::new();
+
+            let resolved_env = resolve_environment_variables(
+                step_environment_variables,
+                self.context
+                    .command
+                    .inputs
+                    .as_ref()
+                    .unwrap_or(&empty_inputs),
+                &self.context.matches,
+            );
+
+            for (key, value) in resolved_env {
+                cmd.env(key, value);
             }
         }
 

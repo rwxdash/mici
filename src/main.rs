@@ -276,7 +276,9 @@ fn main() {
                         }
                     }
                 }
-                Err(_) => todo!(),
+                Err(err) => {
+                    println!("Execution failed: {}", err);
+                }
             }
         }
         None => {
