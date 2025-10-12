@@ -88,80 +88,162 @@ impl NewCommand {
         }
 
         const TEMPLATE: &str = r#"
-##
-##  A reference command template
-##
+##  ==================================================
+##  Minici Command Template
+##  A reference template for creating new commands
+##  ==================================================
 
-# [Required] Command schema version
+##  Schema Version
+#
+#   Must match supported version (currently "1.0")
+#   version: "1.0"
+#
 version: "{version}"
-# [Required] A human readable command name
+
+##  Command Metadata
+#
+#   name: String          [Required] Human-readable command name
+#   description: String   [Optional] Brief description of what this command does
+#   usage: String         [Optional] Usage example showing how to invoke this command
+#
 name: "{name}"
-# [Optional] Command description
 description: "{description}"
-# [Optional] Command usage
 usage: "{usage}"
 
-# [Required] Configuration options
+##  Command Configuration
+#
+#   configuration:
+#     confirm: bool
+#           [Optional]  default: false
+#           Prompt for confirmation before running the command
+#           On runtime, it'll accept any of the following inputs:
+#               y | yes | true  | 1
+#               n | no  | false | 0
+#     environment: Map<String, String>
+#           [Optional]  default: null
+#           Environment variables to pass to all steps
+#           These will override the OS environment variables if any name matches
+#            Supports:
+#              - Basic values: "SOME_VALUE"
+#              - Input references: "@{inputs.force}"
+#              - OS environment: "${MY_PRIVATE_TOKEN}"
+#     working_directory: String
+#           [Optional]  default: null
+#           Working directory for command execution
+#           Defaults to directory where command is invoked
+#
 configuration:
-  # [Optional] Whether to prompt for confirmation before running
-  # Defaults to false
-  # On runtime, it'll accept any of the following inputs:
-  #     y | yes | true  | 1
-  #     n | no  | false | 0
   confirm: {confirm}
-
-  # [Optional] Environment variables to pass to all steps
-  # These will override the OS environment variables if any name matches
   environment:
-    VAR_ONE: "SOME_VALUE_123"     # Basic value
-    VAR_TWO: "SOME_VALUE_123"     # Basic value
-    IS_FORCED: "@{inputs.force}"  # Value from inputs
-    TOKEN: "${MY_PRIVATE_TOKEN}"  # Value from OS Environment
-
-  # [Optional] Working directory to run the command from
-  # Defaults to current working directory where the commmand is called
+    VAR_ONE: "SOME_VALUE_123"
+    VAR_TWO: "SOME_VALUE_123"
+    IS_FORCED: "@{inputs.force}"
+    TOKEN: "${MY_PRIVATE_TOKEN}"
   working_directory: null
 
-# [Optional] List of inputs for the command
-# Allowed input type values are `string`, `choice`, and `bool` or `boolean`
+##  Command Inputs
+#
+#   inputs:
+#     ...
+#     <input_key>:
+#       type: String
+#           [Required]
+#           Input type: "string" | "choice" | "bool" or "boolean"
+#       description: String
+#           [Required]
+#           Help text shown to user
+#       options: Vec<String>
+#           [Optional]  default: null
+#           Array of valid choices
+#           Only required and usable for "choice" type inputs
+#       required: bool
+#           [Optional]  default: false
+#           Whether input must be provided
+#       secret: bool
+#           [Optional]  default: false
+#           Hides value in logs/output
+#       short: String
+#           [Optional]  default: null
+#           Short flag format (e.g., "-n")
+#       long: String
+#           [Optional]  default: "--<input_key>"
+#           Long flag format (e.g., "--name")
+#       default: String
+#           [Optional]  default: null
+#           Default value for the input if not provided
+#
 inputs:
   name:
-    type: string                                # [Required]
-    description: "A name to say hello to!"      # [Required]
-    required: true                              # [Optional] Defaults to false
-    secret: false                               # [Optional] Defaults to false
-    short: -n                                   # [Optional] Defaults to null
-    long: --name                                # [Optional] Defaults to input key, ie. `--name`
-    default: "World"                            # [Optional] Defaults to null
+    type: string
+    description: "A name to say hello to!"
+    required: true
+    secret: false
+    short: -n
+    long: --name
+    default: "World"
   force:
-    type: boolean                               # [Required]
-    description: "Run this with force, maybe?"  # [Required]
-    short: -f                                   # [Optional] Defaults to null
-    long: --force                               # [Optional] Defaults to input key, ie. `--force`
+    type: boolean
+    description: "Run this with force, maybe?"
+    short: -f
+    long: --force
   environment:
-    type: choice                                # [Required]
-    description: "Environment to run this!"     # [Required]
-    options:                                    # [Optional] Only checked in `choice` type inputs
-      - staging                                 #      Takes an array of strings.
-      - production                              #      Validated on runtime.
-    required: false                             # [Optional] Defaults to false
-    secret: false                               # [Optional] Defaults to false
-    short: -e                                   # [Optional] Defaults to null
-    long: --environment                         # [Optional] Defaults to input key, ie. `--name`
-    default: "production"                       # [Optional] Defaults to null
+    type: choice
+    description: "Environment to run this!"
+    options:
+      - staging
+      - production
+    required: false
+    secret: false
+    short: -e
+    long: --environment
+    default: "production"
 
-# [Required] Command steps to execute
-# [TODO] Add `when`, `script`, and `args` after implementation is done
+##  Command Steps
+#
+#   steps:
+#     ...
+#     - id: String
+#           [Required]
+#           Unique identifier for the step
+#           No whitespace allowed
+#       name: String
+#           [Optional]  default: null
+#           Human-readable step description
+#       when: String
+#           [Optional]  default: null
+#           Conditional expression to control the step execution
+#       run:
+#         shell: String
+#           [Optional]  default: OS default shell
+#           Shell to execute command (e.g., "bash", "powershell")
+#         environment: Map<String, String>
+#           [Optional]  default: null
+#           Override configuration.environment for this step only
+#           Supports same syntax as configuration.environment
+#         working_directory: String
+#           [Optional]  default: configuration.working_directory
+#           Override working directory for this step only
+#         command: String
+#           [Required if no script]
+#           Inline command/script to execute
+#         script: String
+#           [Required if no command]
+#           Path to external script file
+#         args: List | Map
+#           [Optional]  default: null
+#           Arguments passed to command/script
+#           Formats:
+#             - List: ["arg1", "arg2", "arg3"]
+#             - Map: {"key1": "value1", "key2": "@{inputs.name}"}
+#
 steps:
-  - id: "{step_id}"               # [Required] A short string with no whitespace to identify this step in the runtime
-    name: "{step_name}"           # [Optional] A human readable name for the step to be more descriptive
-    run:                          # [Required]
-      shell: "{shell}"            # [Optional] The shell that will call the command. Defaults to OS's shell
-      working_directory: null     # [Optional] Overrides the `configuration.working_directory` only for this step. Defaults to current
-      environment:                # [Optional] Overrides the `configuration.environment` only for this step. Defaults to null
+  - id: "{step_id}"
+    name: "{step_name}"
+    run:
+      shell: "{shell}"
+      working_directory: null
+      environment:
         VAR_TWO: "ANOTHER_VALUE_456"
-      # [Required] The actual command to run in this step
-      # Can be either `command` for inline codes or `script` to reference another file from outside
       command: |
         {command}
 "#;
