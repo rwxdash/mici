@@ -16,7 +16,7 @@ pub fn resolve_environment_variables(
     use regex::Regex;
 
     let inputs_re =
-        INPUTS_RE.get_or_init(|| Regex::new(r"\$\{inputs\.([a-zA-Z_][a-zA-Z0-9_]*)\}").unwrap());
+        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_][a-zA-Z0-9_]*)\}").unwrap());
     let env_re = ENV_RE.get_or_init(|| Regex::new(r"\$\{([A-Z_][A-Z0-9_]*)\}").unwrap());
 
     let mut resolved: BTreeMap<String, String> = BTreeMap::new();
@@ -25,7 +25,7 @@ pub fn resolve_environment_variables(
     // Separate variables that need substitution from those that don't
     for (key, value) in environment {
         if let Some(val) = value {
-            if val.contains("${") {
+            if val.contains("${") || val.contains("@{") {
                 // Has substitution patterns - add to pending
                 pending.insert(key.clone(), val.clone());
             } else {
@@ -45,7 +45,7 @@ pub fn resolve_environment_variables(
             let mut result = value.clone();
             let mut variable_resolved = true;
 
-            // Handle ${inputs.xxx}
+            // Handle @{inputs.xxx}
             // Skip if iteration is > 0 since `inputs` will resolve on first go
             if iterations == 0 {
                 result = inputs_re
@@ -55,10 +55,19 @@ pub fn resolve_environment_variables(
                         if let Some(input) = inputs.get(variable_name) {
                             let resolved_value = match input.r#type.as_str() {
                                 "boolean" | "bool" => {
-                                    matches.opt_present(variable_name).to_string()
+                                    if matches.opt_present(variable_name) {
+                                        "true".to_string()
+                                    } else {
+                                        input
+                                            .default
+                                            .as_ref()
+                                            .unwrap_or(&"false".to_string())
+                                            .clone()
+                                    }
                                 }
                                 _ => matches
                                     .opt_str(variable_name)
+                                    .or_else(|| input.default.clone())
                                     .unwrap_or_else(|| "".to_string()),
                             };
 
@@ -117,4 +126,41 @@ pub fn resolve_environment_variables(
     }
 
     resolved.into_iter().collect()
+}
+
+pub fn resolve_input_variables(
+    text: &str,
+    inputs: &BTreeMap<String, CommandSchemaInput>,
+    matches: &getopts::Matches,
+) -> String {
+    let inputs_re =
+        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_][a-zA-Z0-9_]*)\}").unwrap());
+
+    inputs_re
+        .replace_all(text, |caps: &regex::Captures| {
+            let variable_name = &caps[1];
+
+            if let Some(input) = inputs.get(variable_name) {
+                match input.r#type.as_str() {
+                    "boolean" | "bool" => {
+                        if matches.opt_present(variable_name) {
+                            "true".to_string()
+                        } else {
+                            input
+                                .default
+                                .as_ref()
+                                .unwrap_or(&"false".to_string())
+                                .clone()
+                        }
+                    }
+                    _ => matches
+                        .opt_str(variable_name)
+                        .or_else(|| input.default.clone())
+                        .unwrap_or_else(|| "".to_string()),
+                }
+            } else {
+                "".to_string()
+            }
+        })
+        .to_string()
 }

@@ -87,8 +87,92 @@ impl NewCommand {
             ).into());
         }
 
-        // TODO: Replace this
-        let schema = CommandSchema {
+        const TEMPLATE: &str = r#"
+##
+##  A reference command template
+##
+
+# [Required] Command schema version
+version: "{version}"
+# [Required] A human readable command name
+name: "{name}"
+# [Optional] Command description
+description: "{description}"
+# [Optional] Command usage
+usage: "{usage}"
+
+# [Required] Configuration options
+configuration:
+  # [Optional] Whether to prompt for confirmation before running
+  # Defaults to false
+  # On runtime, it'll accept any of the following inputs:
+  #     y | yes | true  | 1
+  #     n | no  | false | 0
+  confirm: {confirm}
+
+  # [Optional] Environment variables to pass to all steps
+  # These will override the OS environment variables if any name matches
+  environment:
+    VAR_ONE: "SOME_VALUE_123"     # Basic value
+    VAR_TWO: "SOME_VALUE_123"     # Basic value
+    IS_FORCED: "@{inputs.force}"  # Value from inputs
+    TOKEN: "${MY_PRIVATE_TOKEN}"  # Value from OS Environment
+
+  # [Optional] Working directory to run the command from
+  # Defaults to current working directory where the commmand is called
+  working_directory: null
+
+# [Optional] List of inputs for the command
+# Allowed input type values are `string`, `choice`, and `bool` or `boolean`
+inputs:
+  name:
+    type: string                                # [Required]
+    description: "A name to say hello to!"      # [Required]
+    required: true                              # [Optional] Defaults to false
+    secret: false                               # [Optional] Defaults to false
+    short: -n                                   # [Optional] Defaults to null
+    long: --name                                # [Optional] Defaults to input key, ie. `--name`
+    default: "World"                            # [Optional] Defaults to null
+  force:
+    type: boolean                               # [Required]
+    description: "Run this with force, maybe?"  # [Required]
+    short: -f                                   # [Optional] Defaults to null
+    long: --force                               # [Optional] Defaults to input key, ie. `--force`
+  environment:
+    type: choice                                # [Required]
+    description: "Environment to run this!"     # [Required]
+    options:                                    # [Optional] Only checked in `choice` type inputs
+      - staging                                 #      Takes an array of strings.
+      - production                              #      Validated on runtime.
+    required: false                             # [Optional] Defaults to false
+    secret: false                               # [Optional] Defaults to false
+    short: -e                                   # [Optional] Defaults to null
+    long: --environment                         # [Optional] Defaults to input key, ie. `--name`
+    default: "production"                       # [Optional] Defaults to null
+
+# [Required] Command steps to execute
+# [TODO] Add `when`, `script`, and `args` after implementation is done
+steps:
+  - id: "{step_id}"               # [Required] A short string with no whitespace to identify this step in the runtime
+    name: "{step_name}"           # [Optional] A human readable name for the step to be more descriptive
+    run:                          # [Required]
+      shell: "{shell}"            # [Optional] The shell that will call the command. Defaults to OS's shell
+      working_directory: null     # [Optional] Overrides the `configuration.working_directory` only for this step. Defaults to current
+      environment:                # [Optional] Overrides the `configuration.environment` only for this step. Defaults to null
+        VAR_TWO: "ANOTHER_VALUE_456"
+      # [Required] The actual command to run in this step
+      # Can be either `command` for inline codes or `script` to reference another file from outside
+      command: |
+        {command}
+"#;
+
+        #[cfg(unix)]
+        let default_shell: &'static str = "bash";
+
+        #[cfg(windows)]
+        let default_shell: &'static str = "powershell";
+
+        let schema: CommandSchema = CommandSchema {
             version: "1.0".to_string(),
             name: command_path.replace(path::MAIN_SEPARATOR_STR, " "),
             inputs: None,
@@ -103,17 +187,20 @@ impl NewCommand {
                 working_directory: None,
             },
             steps: vec![CommandSchemaStep {
-                id: "run".to_string(),
-                name: Some("run".to_string()),
+                id: "say_hello".to_string(),
+                name: Some("Say hello on terminal".to_string()),
                 when: None,
                 run: CommandSchemaStepRun {
-                    shell: Some("/bin/bash".to_string()),
-                    always: Some(false),
+                    shell: Some(default_shell.to_string()),
                     args: None,
                     environment: None,
                     working_directory: None,
                     execution: CommandSchemaStepRunExecution::Command {
-                        command: "echo 'Hello, World!'".to_string(),
+                        command: r#"
+echo "Hello, @{inputs.name}!"
+"#
+                        .trim()
+                        .to_string(),
                     },
                 },
             }],
@@ -123,7 +210,24 @@ impl NewCommand {
             fs::create_dir_all(parent)?;
         }
 
-        let yaml_content = serde_yaml::to_string(&schema)?;
+        // let yaml_content = serde_yaml::to_string(&schema)?;
+        let yaml_content = TEMPLATE
+            .trim_start()
+            .replace("{version}", &schema.version)
+            .replace("{name}", &schema.name)
+            .replace("{description}", &schema.description.unwrap())
+            .replace("{usage}", &schema.usage.unwrap())
+            .replace(
+                "{confirm}",
+                &schema.configuration.confirm.unwrap_or_default().to_string(),
+            )
+            .replace("{step_id}", &schema.steps[0].id)
+            .replace("{step_name}", &schema.steps[0].name.as_ref().unwrap())
+            .replace("{shell}", &schema.steps[0].run.shell.as_ref().unwrap())
+            .replace(
+                "{command}",
+                &schema.steps[0].run.execution.get_command().unwrap(),
+            );
         fs::write(&file_path, yaml_content)?;
 
         printdoc! {"
