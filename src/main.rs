@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod errors;
 pub mod runner;
 pub mod utils;
 extern crate dirs;
@@ -277,7 +278,9 @@ fn main() {
                     }
                 }
                 Err(err) => {
-                    println!("Execution failed: {}", err);
+                    let report = miette::Report::new(err);
+                    eprintln!("{:?}", report);
+                    std::process::exit(1);
                 }
             }
         }
