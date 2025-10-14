@@ -16,7 +16,12 @@ use std::path::Path;
 use std::process;
 
 const MICI_REPOSITORY: &str = "git@github.com:rwxdash/mici.git";
-const MICI_EXAMPLES_PATH: &str = "./examples";
+
+#[cfg(unix)]
+const MICI_EXAMPLES_PATH: &str = "./examples/unix";
+
+#[cfg(windows)]
+const MICI_EXAMPLES_PATH: &str = "./examples/windows";
 
 #[allow(dead_code)]
 pub struct InitCommand {
