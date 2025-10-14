@@ -3,9 +3,17 @@
 name = "mici"
 version = "0.1.0"
 edition = "2024"
+license-file = "LICENSE.md"
 description = "Lightweight CLI framework based on filesystem hierarchy"
-authors = ["Oguzhan Ozdemir <aoozdemir@live.com>"]
+authors = ["Oguzhan Ozdemir"]
 exclude = [".*", "rfc/", "schemas/"]
+categories = [
+    "command-line-utilities",
+    "command-line-interface",
+    "development-tools",
+    "development-tools::build-utils",
+]
+keywords = ["cli", "ci", "framework"]
 repository = "https://github.com/rwxdash/mici"
 
 # Dependencies
