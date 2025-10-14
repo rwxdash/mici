@@ -3,7 +3,7 @@
 name = "mici"
 version = "0.1.0"
 edition = "2024"
-license-file = "LICENSE.md"
+license-file = "LICENSE"
 description = "Lightweight CLI framework based on filesystem hierarchy"
 authors = ["Oguzhan Ozdemir"]
 exclude = [".*", "rfc/", "schemas/"]
