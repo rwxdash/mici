@@ -14,7 +14,7 @@ Make sure `Rust` is installed. See [#install](#install) for more details.
 cargo install mici
 ```
 
-Run `mici --help` or `mici --help` to see what's available.
+Run `mici --help` to see what's available.
 
 ```bash
 # Initialize mici
