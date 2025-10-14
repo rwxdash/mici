@@ -119,8 +119,10 @@ impl FetchCommand {
         )
         .expect("Failed to copy upstream to the jobs directory");
 
-        fs::remove_dir_all(Path::new(&get_jobs_folder()).join(".git"))
-            .expect("Failed to remove .git directory");
+        let git_dir = Path::new(&get_jobs_folder()).join(".git");
+        if git_dir.exists() {
+            fs::remove_dir_all(&git_dir).expect("Failed to remove .git directory");
+        }
         fs::remove_dir_all(&tmp_folder).expect("Failed to remove temporary folder");
 
         return Ok(());
