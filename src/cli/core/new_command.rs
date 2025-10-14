@@ -292,7 +292,6 @@ echo "Hello, @{inputs.name}!"
             fs::create_dir_all(parent)?;
         }
 
-        // let yaml_content = serde_yaml::to_string(&schema)?;
         let yaml_content = TEMPLATE
             .trim_start()
             .replace("{version}", &schema.version)

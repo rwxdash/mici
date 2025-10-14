@@ -239,7 +239,7 @@ pub enum ValidationError {
         #[label("first occurrence here")]
         first_span: SourceSpan,
 
-        #[label("duplicate id occured here")]
+        #[label("duplicate id occurred here")]
         second_span: SourceSpan,
 
         first_index: usize,
