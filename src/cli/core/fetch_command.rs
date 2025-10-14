@@ -20,20 +20,20 @@ impl FetchCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "mci fetch",
+                name: "mici fetch",
                 description: "
     Synchronizes and updates local commands by cloning from a specified remote
     repository.
                 ",
-                synopsis: "mci fetch [options]",
+                synopsis: "mici fetch [options]",
                 options: "
     -b, --branch <name>     (option)
     Specify the branch to fetch and use for updating local commands.
     Defaults to the repository's default branch if not provided.
                 ",
                 usage: "
-    mci fetch           # Fetches default branch from remote
-    mci fetch -b dev    # Fetches `dev` branch from remote
+    mici fetch           # Fetches default branch from remote
+    mici fetch -b dev    # Fetches `dev` branch from remote
                 ",
             },
         }
@@ -43,8 +43,8 @@ impl FetchCommand {
         // TODO: Warn that this cant be undone!
         // TODO: Better logging
 
-        let minici_exist = Path::new(&get_project_folder()).exists();
-        if !minici_exist {
+        let mici_exist = Path::new(&get_project_folder()).exists();
+        if !mici_exist {
             // TODO: print err and exit
             println!("> Exiting...");
             process::exit(1)

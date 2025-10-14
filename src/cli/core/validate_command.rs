@@ -23,25 +23,25 @@ impl ValidateCommand {
     pub const fn new() -> Self {
         ValidateCommand {
             base: BaseCommand {
-                name: "mci validate",
+                name: "mici validate",
                 description: "Validate the given command's specification.",
-                synopsis: "mci validate <command>...",
+                synopsis: "mici validate <command>...",
                 options: "
     <command>...        (argument)
     Path to a command to validate (e.g., 'project deploy').
                 ",
                 usage: "
-    mci validate project deploy     # Validates `.../project/deploy.yml`
+    mici validate project deploy     # Validates `.../project/deploy.yml`
                 ",
             },
         }
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let minici_exist: bool = Path::new(&get_project_folder()).exists();
+        let mici_exist: bool = Path::new(&get_project_folder()).exists();
         let commands_folder_exist = Path::new(&get_commands_folder()).exists();
 
-        if !minici_exist {
+        if !mici_exist {
             printdoc! {"
                     {} Can't validate commands.
 

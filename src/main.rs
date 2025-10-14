@@ -28,7 +28,7 @@ use std::{
     sync::OnceLock,
 };
 
-static PROJECT_DIR: &str = ".minici";
+static PROJECT_DIR: &str = ".mici";
 static EXECUTABLE: OnceLock<String> = OnceLock::new();
 
 fn main() {
@@ -38,7 +38,7 @@ fn main() {
     let executable: String = Path::new(&args[0])
         .file_stem()
         .and_then(|s| s.to_str())
-        .unwrap_or("minici")
+        .unwrap_or("mici")
         .to_string();
     EXECUTABLE.set(executable).unwrap();
 
@@ -303,12 +303,12 @@ fn main() {
             }
         }
         None => {
-            // Check if ~/.minici/config.yml exists
+            // Check if ~/.mici/config.yml exists
             // If not, print first time help
             // Otherwise, print shorter version
-            let minici_exist = Path::new(&get_project_folder()).exists();
+            let mici_exist = Path::new(&get_project_folder()).exists();
 
-            if minici_exist {
+            if mici_exist {
                 printdoc! {"
                     {} This is {}!
                       Found an existing configuration at {}
@@ -325,7 +325,7 @@ fn main() {
                     {} This is {}!
 
                       I don't see any existing configuration at {}
-                      Try running {} {} to initialize minici
+                      Try running {} {} to initialize mici
                 ",
                     ">".bright_black(),
                     EXECUTABLE.get().unwrap().underline().bold(),

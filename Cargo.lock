@@ -631,6 +631,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
 
 [[package]]
+name = "mici"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "dialoguer",
+ "dirs",
+ "fs_extra",
+ "getopts",
+ "git2",
+ "handlebars",
+ "indoc",
+ "miette",
+ "pager",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "miette"
 version = "7.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -658,27 +679,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "minici"
-version = "0.1.0"
-dependencies = [
- "colored",
- "dialoguer",
- "dirs",
- "fs_extra",
- "getopts",
- "git2",
- "handlebars",
- "indoc",
- "miette",
- "pager",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "thiserror 2.0.17",
 ]
 
 [[package]]

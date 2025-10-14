@@ -1,5 +1,5 @@
 ##  ==================================================
-##  Minici Command Template
+##  mici Command Template
 ##  A reference template for creating new commands
 ##  ==================================================
 
@@ -17,8 +17,8 @@ version: "1.0"
 #   usage: String         [Optional] Usage example showing how to invoke this command
 #
 name: "hello"
-description: "A new minici command"
-usage: "mci hello"
+description: "A new mici command"
+usage: "mici hello"
 
 ##  Command Configuration
 #

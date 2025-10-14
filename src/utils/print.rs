@@ -70,7 +70,7 @@ pub fn print_general_help() {
         "commands": [
             {
                 "name": "init",
-                "description": "Initializes or reconfigures a minici project"
+                "description": "Initializes or reconfigures a mici project"
             },
             {
                 "name": "fetch",

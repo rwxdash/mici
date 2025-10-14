@@ -14,8 +14,8 @@ use std::io::Write;
 use std::path::Path;
 use std::process;
 
-const MINICI_REPOSITORY: &str = "git@github.com:rwxdash/minici.git";
-const MINICI_EXAMPLES_PATH: &str = "./examples";
+const MICI_REPOSITORY: &str = "git@github.com:rwxdash/mici.git";
+const MICI_EXAMPLES_PATH: &str = "./examples";
 
 #[allow(dead_code)]
 pub struct InitCommand {
@@ -26,29 +26,29 @@ impl InitCommand {
     pub const fn new() -> Self {
         Self {
             base: BaseCommand {
-                name: "mci init",
-                description: "Initializes a new mci project or reconfigures an existing setup.",
-                synopsis: "mci init [options]",
+                name: "mici init",
+                description: "Initializes a new mici project or reconfigures an existing setup.",
+                synopsis: "mici init [options]",
                 options: "
     --clean     (flag)
-    Remove any existing mci configuration and perform a fresh setup.
+    Remove any existing mici configuration and perform a fresh setup.
     Use this to reset your environment.
                 ",
                 usage: "
-    mci init            # Initialize a new project if it doesn't exist
-    mci init --clean    # Initialize a new project from scratch
+    mici init            # Initialize a new project if it doesn't exist
+    mici init --clean    # Initialize a new project from scratch
                 ",
             },
         }
     }
 
     pub fn run(&self, clean: bool) -> Result<(), Box<dyn Error>> {
-        let minici_exist = Path::new(&get_project_folder()).exists();
+        let mici_exist = Path::new(&get_project_folder()).exists();
 
-        if minici_exist {
+        if mici_exist {
             if clean {
                 printdoc! {"
-                    {} Found existing minici setup
+                    {} Found existing mici setup
                     {} Doing the cleanup...
                       {} {}
                 ",
@@ -71,8 +71,8 @@ impl InitCommand {
                 }
             } else {
                 printdoc! {"
-                    {} Found existing minici setup
-                      Skipping minici setup...
+                    {} Found existing mici setup
+                      Skipping mici setup...
                       {} {}
                       {} {}
                 ",
@@ -87,7 +87,7 @@ impl InitCommand {
             }
         }
 
-        println!("{} Setting up minici...", ">".bright_black(),);
+        println!("{} Setting up mici...", ">".bright_black(),);
 
         let set_upstream = dialoguer::Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Do you keep your commands on a remote repository?")
@@ -107,12 +107,12 @@ impl InitCommand {
         if set_upstream == 1 {
             let upstream_url: String = Input::with_theme(&ColorfulTheme::default())
                 .with_prompt(format!("{}", "Upstream repository URL for your commands",))
-                .default(MINICI_REPOSITORY.to_string())
+                .default(MICI_REPOSITORY.to_string())
                 .interact_text()
                 .unwrap();
             let upstream_cmd_path: String = Input::with_theme(&ColorfulTheme::default())
                 .with_prompt(format!("{}", "Path for your commands in the repository",))
-                .default(MINICI_EXAMPLES_PATH.to_string())
+                .default(MICI_EXAMPLES_PATH.to_string())
                 .interact_text()
                 .unwrap();
 
@@ -131,7 +131,7 @@ impl InitCommand {
             };
         }
 
-        // ~/.minici
+        // ~/.mici
         create_folder_at(&get_project_folder());
         create_folder_at(&get_jobs_folder());
         create_folder_at(&get_commands_folder());

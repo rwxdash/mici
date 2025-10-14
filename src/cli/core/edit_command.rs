@@ -22,15 +22,15 @@ impl EditCommand {
     pub const fn new() -> Self {
         EditCommand {
             base: BaseCommand {
-                name: "mci edit",
+                name: "mici edit",
                 description: "Edit given command with the default editor.",
-                synopsis: "mci edit <command>...",
+                synopsis: "mici edit <command>...",
                 options: "
     <command>...        (argument)
     Path to a command to edit in the default editor (e.g., 'project deploy').
                 ",
                 usage: "
-    mci edit project deploy     # Opens `.../project/deploy.yml` command
+    mici edit project deploy     # Opens `.../project/deploy.yml` command
                                 # in the default editor
                 ",
             },
@@ -38,10 +38,10 @@ impl EditCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let minici_exist: bool = Path::new(&get_project_folder()).exists();
+        let mici_exist: bool = Path::new(&get_project_folder()).exists();
         let commands_folder_exist = Path::new(&get_commands_folder()).exists();
 
-        if !minici_exist {
+        if !mici_exist {
             printdoc! {"
                     {} Can't edit commands.
 

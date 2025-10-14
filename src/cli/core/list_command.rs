@@ -21,17 +21,17 @@ impl ListCommand {
     pub const fn new() -> Self {
         ListCommand {
             base: BaseCommand {
-                name: "mci list",
+                name: "mici list",
                 description: "Displays all available commands, optionally filtered by directory.",
-                synopsis: "mci list [<directory>...]",
+                synopsis: "mici list [<directory>...]",
                 options: "
     <directory>...      (argument)
     One or more directories to list available commands from.
     If omitted, lists commands from all available directories.
                 ",
                 usage: "
-    mci list            # Lists all the commands
-    mci list deploy     # Lists commands under `.../deploy/`
+    mici list            # Lists all the commands
+    mici list deploy     # Lists commands under `.../deploy/`
     ...
                 ",
             },
@@ -196,10 +196,10 @@ impl ListCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let minici_exist = Path::new(&get_project_folder()).exists();
+        let mici_exist = Path::new(&get_project_folder()).exists();
         let commands_folder_exist = Path::new(&get_commands_folder()).exists();
 
-        if !minici_exist {
+        if !mici_exist {
             printdoc! {"
                     {} Can't list commands.
 

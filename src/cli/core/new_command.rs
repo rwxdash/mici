@@ -21,9 +21,9 @@ impl NewCommand {
     pub const fn new() -> Self {
         NewCommand {
             base: BaseCommand {
-                name: "mci new",
+                name: "mici new",
                 description: "Creates a new command from a template.",
-                synopsis: "mci new [<command>...]",
+                synopsis: "mici new [<command>...]",
                 options: "
     <command>...        (argument)
     The path for the new command (e.g., 'project deploy').
@@ -31,8 +31,8 @@ impl NewCommand {
     If omitted, you will be prompted for the path.
                 ",
                 usage: "
-    mci new             # Prompts for creating a new command
-    mci new deploy      # Creates a command without prompting at given path
+    mici new             # Prompts for creating a new command
+    mici new deploy      # Creates a command without prompting at given path
                         # (i.e., .../deploy.yml)
                 ",
             },
@@ -40,8 +40,8 @@ impl NewCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let minici_exist = Path::new(&get_project_folder()).exists();
-        if !minici_exist {
+        let mici_exist = Path::new(&get_project_folder()).exists();
+        if !mici_exist {
             printdoc! {"
                     {} Can't create a new command.
 
@@ -89,7 +89,7 @@ impl NewCommand {
 
         const TEMPLATE: &str = r#"
 ##  ==================================================
-##  Minici Command Template
+##  mici Command Template
 ##  A reference template for creating new commands
 ##  ==================================================
 
@@ -258,9 +258,9 @@ steps:
             version: "1.0".to_string(),
             name: command_path.replace(path::MAIN_SEPARATOR_STR, " "),
             inputs: None,
-            description: Some("A new minici command".to_string()),
+            description: Some("A new mici command".to_string()),
             usage: Some(format!(
-                "mci {}",
+                "mici {}",
                 command_path.replace(path::MAIN_SEPARATOR_STR, " ")
             )),
             configuration: CommandSchemaConfiguration {
