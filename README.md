@@ -10,7 +10,7 @@ Make sure `Rust` is installed. See [#install](#install) for more details.
 
 ```bash
 # Install mici using Cargo
-# This will install `mici` and `mici` as executables.
+# This will install `mici` as executable.
 cargo install mici
 ```
 
