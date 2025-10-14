@@ -7,6 +7,7 @@ description = "Lightweight CLI framework based on filesystem hierarchy"
 default-run = "mci"
 authors = ["Oguzhan Ozdemir <aoozdemir@live.com>"]
 exclude = [".*", "rfc/", "schemas/"]
+repository = "https://github.com/rwxdash/minici"
 
 # Executables
 [[bin]]

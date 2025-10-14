@@ -14,7 +14,7 @@ use crate::{
     cli::core::{
         base_command::InitConfiguration, config_command::CONFIG_COMMAND,
         edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-        list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+        list_command::LIST_COMMAND, new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
     },
     runner::{context::ExecutionContext, coordinator::Coordinator},
     utils::{checks::catch_help_and_version_commands, fs::*, yaml::parse_command_file},
@@ -133,6 +133,24 @@ fn main() {
             let command_args = matches.free[1..].to_vec();
 
             match EDIT_COMMAND.run(command_args) {
+                Ok(()) => return,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+        }
+        Some("validate") => {
+            let matches = match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+            let command_args = matches.free[1..].to_vec();
+
+            match VALIDATE_COMMAND.run(command_args) {
                 Ok(()) => return,
                 Err(err) => {
                     println!("> {}\n", err);
