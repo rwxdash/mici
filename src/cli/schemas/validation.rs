@@ -194,6 +194,37 @@ impl SchemaValidator {
             } else {
                 id_positions.push((&step.id, index));
             }
+
+            let command_span = self.find_step_field_span(index, "command");
+            let script_span = self.find_step_field_span(index, "script");
+
+            match (command_span, script_span) {
+                (None, None) => {
+                    if let Some(span) = self.find_step_field_span(index, "run") {
+                        self.errors.push(ValidationError::StepRunMissing {
+                            src: self.source.clone(),
+                            step_id: step.id.clone(),
+                            span,
+                        });
+                    }
+                }
+                (Some(_), Some(_)) => {
+                    if let (Some(command_span), Some(script_span)) = (
+                        self.find_step_field_span(index, "command"),
+                        self.find_step_field_span(index, "script"),
+                    ) {
+                        self.errors.push(ValidationError::StepRunMutuallyExclusive {
+                            src: self.source.clone(),
+                            step_id: step.id.clone(),
+                            command_span,
+                            script_span,
+                        });
+                    }
+                }
+                _ => {
+                    // Valid. Noop.
+                }
+            }
         }
     }
 

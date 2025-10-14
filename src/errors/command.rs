@@ -260,4 +260,24 @@ pub enum ValidationError {
         #[label("run field required")]
         span: SourceSpan,
     },
+
+    #[error(
+        "Step '{step_id}' has both 'command' and 'script' in its 'run' - they are mutually exclusive"
+    )]
+    #[diagnostic(
+        code(mici::schema::step_run_mutually_exclusive),
+        help("Only one of 'command' or 'script' may be present in a step's 'run' block")
+    )]
+    StepRunMutuallyExclusive {
+        #[source_code]
+        src: NamedSource<String>,
+
+        step_id: String,
+
+        #[label("'command' is set here")]
+        command_span: SourceSpan,
+
+        #[label("'script' is set here")]
+        script_span: SourceSpan,
+    },
 }
