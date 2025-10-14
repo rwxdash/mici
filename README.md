@@ -131,34 +131,34 @@ There are some major stories to complete before I call this project version 1.0.
 
 #### TODOs
 
-- [] Implement tests and CI checks
+- [ ] Implement tests and CI checks
 - [x] Implement the basic runner
     + [x] Handle step confirmation
     + [x] Basic execution of a simple command
     + [x] Implement environment variable substitution
     + [x] Make basic execution run on Windows
-    + [] Implement `script: "scripts/..."` usage for steps
-- [] Better logging throughout the program
-    + [] Error/Debug log level can be set through config file
-    + [] Can be set to None/Silent
-    + [] Implement tracing
-      + [] Add tracing for rust/otel    # https://github.com/tokio-rs/tracing
+    + [ ] Implement `script: "scripts/..."` usage for steps
+- [ ] Better logging throughout the program
+    + [ ] Error/Debug log level can be set through config file
+    + [ ] Can be set to None/Silent
+    + [ ] Implement tracing
+      + [ ] Add tracing for rust/otel     # https://github.com/tokio-rs/tracing
 - [x] The default schema in new command should have proper default shell for linux/windows
-- [] Implement expression evaluator for `when:` in steps
-    + [] on_failure()                  # any previous step failed
-    + [] on_success()                  # all previous steps passed
-    + [] on_platform("linux")          # linux/win/darwin
-    + [] depends_on("step_id")         # or depends_on(["step1", "step2"])
-    + [] ${ENV_VAR} == "production"
-    + [] @{inputs.cleanup}
-    + [] @{inputs.branch} == "main"
-    + [] @{steps.<STEP_ID>.output} == "success" (Or shell code? not sure)
-    + [] Accept operators and chains
-    + [] Implement variable masking (?)
+- [ ] Implement expression evaluator for `when:` in steps
+    + [ ] `on_failure()`                  # any previous step failed
+    + [ ] `on_success()`                  # all previous steps passed
+    + [ ] `on_platform("linux")`          # linux/win/darwin
+    + [ ] `depends_on("step_id")`         # or depends_on(["step1", "step2"])
+    + [ ] `${ENV_VAR} == "production"`
+    + [ ] `@{inputs.cleanup}`
+    + [ ] `@{inputs.branch} == "main"`
+    + [ ] `@{steps.<STEP_ID>.output} == "success"` (Or shell code? not sure)
+    + [ ] Accept operators and chains
+    + [ ] Implement variable masking for `secret: true`
 - [x] Basic validation for commands
-- [x] Handle errors with miette          # https://github.com/zkat/miette
+- [x] Handle errors with miette           # https://github.com/zkat/miette
     + [x] Might need a new error class
-- [] Think about runner/step-execution isolation
+- [ ] Think about runner/step-execution isolation
     + with chroot/containers/microvms
 
 ## Contributions and Code of Conduct
@@ -169,6 +169,12 @@ About the **Contributions**, the project is obviously open to contributions. How
 
 I'd very much appreciate if you open an issue beforehand if you plan to contribute any change.
 
+## License
+
+Distributed under the Apache License 2.0.
+
+See the [LICENSE](LICENSE) file for more information.
+
 ---
 
-*mici: Because your filesystem is the best argument parser.*
+*mici: Your filesystem is the best argument parser.*
