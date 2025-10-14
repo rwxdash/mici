@@ -11,6 +11,7 @@ use indoc::printdoc;
 use std::error::Error;
 use std::fs;
 use std::io::Write;
+use std::path;
 use std::path::Path;
 use std::process;
 
@@ -142,13 +143,14 @@ impl InitCommand {
         config_yaml.write_all(&config_yaml_as_string.as_bytes())?;
 
         printdoc! {"
-            {} Wrote the given configuration at {}{}
+            {} Wrote the given configuration at {}{}{}
               You can update this configuration manually by editing this file
               Run {} {} to pull your commands from this repository
             ",
             ">".bright_black(),
             &get_project_folder().bright_cyan().bold(),
-            "/config.yml".bright_cyan().bold(),
+            path::MAIN_SEPARATOR_STR,
+            "config.yml".bright_cyan().bold(),
             EXECUTABLE.get().unwrap(),
             "fetch".blue().bold(),
         }
