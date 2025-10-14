@@ -1,21 +1,12 @@
 # Package
 [package]
-name = "minici"
+name = "mici"
 version = "0.1.0"
 edition = "2024"
 description = "Lightweight CLI framework based on filesystem hierarchy"
-default-run = "mci"
 authors = ["Oguzhan Ozdemir <aoozdemir@live.com>"]
 exclude = [".*", "rfc/", "schemas/"]
-
-# Executables
-[[bin]]
-name = "minici"
-path = "src/main.rs"
-
-[[bin]]
-name = "mci"
-path = "src/main.rs"
+repository = "https://github.com/rwxdash/mici"
 
 # Dependencies
 [dependencies]
@@ -27,11 +18,12 @@ getopts = "0.2.23"
 git2 = "0.20.2"
 handlebars = "6.3.2"
 indoc = "2.0.6"
+miette = { version = "7.6.0", features = ["fancy"] }
 regex = "1.11.2"
-# rust-embed = "8.5.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
 serde_yaml = "0.9"
+thiserror = "2.0.17"
 
 [target.'cfg(not(target_os = "windows"))'.dependencies]
 pager = "0.16.1"

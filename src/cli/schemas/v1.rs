@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, HashMap};
 pub enum CommandSchemaStepRunArgsConfig {
     // Array format: ["environment", "service", "version"]
     List(Vec<String>),
-    // Object format: { "target_env": "${inputs.environment}", ... }
+    // Object format: { "target_env": "@{inputs.environment}", ... }
     Map(BTreeMap<String, String>),
 }
 
@@ -93,8 +93,6 @@ pub struct CommandSchemaStep {
 pub struct CommandSchemaStepRun {
     #[serde(default = "default_schema_step_run_shell")]
     pub shell: Option<String>,
-    #[serde(default = "default_schema_step_run_always")]
-    pub always: Option<bool>,
     pub environment: Option<BTreeMap<String, Option<String>>>,
     #[serde(flatten)]
     pub execution: CommandSchemaStepRunExecution,
@@ -128,10 +126,6 @@ fn default_schema_input_required() -> Option<bool> {
 }
 
 fn default_schema_input_secret() -> Option<bool> {
-    return Some(false);
-}
-
-fn default_schema_step_run_always() -> Option<bool> {
     return Some(false);
 }
 

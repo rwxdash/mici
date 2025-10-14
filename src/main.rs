@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod errors;
 pub mod runner;
 pub mod utils;
 extern crate dirs;
@@ -13,7 +14,7 @@ use crate::{
     cli::core::{
         base_command::InitConfiguration, config_command::CONFIG_COMMAND,
         edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-        list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+        list_command::LIST_COMMAND, new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
     },
     runner::{context::ExecutionContext, coordinator::Coordinator},
     utils::{checks::catch_help_and_version_commands, fs::*, yaml::parse_command_file},
@@ -27,7 +28,7 @@ use std::{
     sync::OnceLock,
 };
 
-static PROJECT_DIR: &str = ".minici";
+static PROJECT_DIR: &str = ".mici";
 static EXECUTABLE: OnceLock<String> = OnceLock::new();
 
 fn main() {
@@ -37,7 +38,7 @@ fn main() {
     let executable: String = Path::new(&args[0])
         .file_stem()
         .and_then(|s| s.to_str())
-        .unwrap_or("minici")
+        .unwrap_or("mici")
         .to_string();
     EXECUTABLE.set(executable).unwrap();
 
@@ -132,6 +133,24 @@ fn main() {
             let command_args = matches.free[1..].to_vec();
 
             match EDIT_COMMAND.run(command_args) {
+                Ok(()) => return,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+        }
+        Some("validate") => {
+            let matches = match opts.parse(&args[1..]) {
+                Ok(m) => m,
+                Err(err) => {
+                    println!("> {}\n", err);
+                    return;
+                }
+            };
+            let command_args = matches.free[1..].to_vec();
+
+            match VALIDATE_COMMAND.run(command_args) {
                 Ok(()) => return,
                 Err(err) => {
                     println!("> {}\n", err);
@@ -277,17 +296,19 @@ fn main() {
                     }
                 }
                 Err(err) => {
-                    println!("Execution failed: {}", err);
+                    let report = miette::Report::new(err);
+                    eprintln!("{:?}", report);
+                    std::process::exit(1);
                 }
             }
         }
         None => {
-            // Check if ~/.minici/config.yml exists
+            // Check if ~/.mici/config.yml exists
             // If not, print first time help
             // Otherwise, print shorter version
-            let minici_exist = Path::new(&get_project_folder()).exists();
+            let mici_exist = Path::new(&get_project_folder()).exists();
 
-            if minici_exist {
+            if mici_exist {
                 printdoc! {"
                     {} This is {}!
                       Found an existing configuration at {}
@@ -304,7 +325,7 @@ fn main() {
                     {} This is {}!
 
                       I don't see any existing configuration at {}
-                      Try running {} {} to initialize minici
+                      Try running {} {} to initialize mici
                 ",
                     ">".bright_black(),
                     EXECUTABLE.get().unwrap().underline().bold(),

@@ -3,6 +3,7 @@ use crate::{
     cli::core::{
         config_command::CONFIG_COMMAND, edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND,
         init_command::INIT_COMMAND, list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+        validate_command::VALIDATE_COMMAND,
     },
     utils::{
         fs::{get_command_file, get_commands_folder},
@@ -69,7 +70,7 @@ pub fn print_general_help() {
         "commands": [
             {
                 "name": "init",
-                "description": "Initializes or reconfigures a minici project"
+                "description": "Initializes or reconfigures a mici project"
             },
             {
                 "name": "fetch",
@@ -82,6 +83,10 @@ pub fn print_general_help() {
             {
                 "name": "edit",
                 "description": "Opens the given command file in the default editor"
+            },
+            {
+                "name": "validate",
+                "description": "Validates a given command's specification"
             },
             {
                 "name": "list",
@@ -157,6 +162,15 @@ pub fn print_individual_help(command: &String) {
                     .render("individual_help", &EDIT_COMMAND.base.as_hash_map())
                     .unwrap(),
             );
+        }
+        "validate" => {
+            pager();
+            println!(
+                "{}",
+                handlebars
+                    .render("individual_help", &VALIDATE_COMMAND.base.as_hash_map())
+                    .unwrap(),
+            )
         }
         "list" => {
             pager();
@@ -271,8 +285,9 @@ pub fn print_individual_help(command: &String) {
                         println!("{}", handlebars.render("individual_help", cmd_map).unwrap());
                     }
                     Err(err) => {
-                        println!("{}", err.to_string());
-                        println!("yaml invalid");
+                        let report = miette::Report::new(err);
+                        eprintln!("{:?}", report);
+                        std::process::exit(1);
                     }
                 }
             } else if folder_exist {

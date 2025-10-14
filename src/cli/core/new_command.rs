@@ -21,9 +21,9 @@ impl NewCommand {
     pub const fn new() -> Self {
         NewCommand {
             base: BaseCommand {
-                name: "mci new",
+                name: "mici new",
                 description: "Creates a new command from a template.",
-                synopsis: "mci new [<command>...]",
+                synopsis: "mici new [<command>...]",
                 options: "
     <command>...        (argument)
     The path for the new command (e.g., 'project deploy').
@@ -31,8 +31,8 @@ impl NewCommand {
     If omitted, you will be prompted for the path.
                 ",
                 usage: "
-    mci new             # Prompts for creating a new command
-    mci new deploy      # Creates a command without prompting at given path
+    mici new             # Prompts for creating a new command
+    mici new deploy      # Creates a command without prompting at given path
                         # (i.e., .../deploy.yml)
                 ",
             },
@@ -40,8 +40,8 @@ impl NewCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let minici_exist = Path::new(&get_project_folder()).exists();
-        if !minici_exist {
+        let mici_exist = Path::new(&get_project_folder()).exists();
+        if !mici_exist {
             printdoc! {"
                     {} Can't create a new command.
 
@@ -87,14 +87,180 @@ impl NewCommand {
             ).into());
         }
 
-        // TODO: Replace this
-        let schema = CommandSchema {
+        const TEMPLATE: &str = r#"
+##  ==================================================
+##  mici Command Template
+##  A reference template for creating new commands
+##  ==================================================
+
+##  Schema Version
+#
+#   Must match supported version (currently "1.0")
+#   version: "1.0"
+#
+version: "{version}"
+
+##  Command Metadata
+#
+#   name: String          [Required] Human-readable command name
+#   description: String   [Optional] Brief description of what this command does
+#   usage: String         [Optional] Usage example showing how to invoke this command
+#
+name: "{name}"
+description: "{description}"
+usage: "{usage}"
+
+##  Command Configuration
+#
+#   configuration:
+#     confirm: bool
+#           [Optional]  default: false
+#           Prompt for confirmation before running the command
+#           On runtime, it'll accept any of the following inputs:
+#               y | yes | true  | 1
+#               n | no  | false | 0
+#     environment: Map<String, String>
+#           [Optional]  default: null
+#           Environment variables to pass to all steps
+#           These will override the OS environment variables if any name matches
+#            Supports:
+#              - Basic values: "SOME_VALUE"
+#              - Input references: "@{inputs.force}"
+#              - OS environment: "${MY_PRIVATE_TOKEN}"
+#     working_directory: String
+#           [Optional]  default: null
+#           Working directory for command execution
+#           Defaults to directory where command is invoked
+#
+configuration:
+  confirm: {confirm}
+  environment:
+    VAR_ONE: "SOME_VALUE_123"
+    VAR_TWO: "SOME_VALUE_123"
+    IS_FORCED: "@{inputs.force}"
+    TOKEN: "${MY_PRIVATE_TOKEN}"
+  working_directory: null
+
+##  Command Inputs
+#
+#   inputs:
+#     ...
+#     <input_key>:
+#       type: String
+#           [Required]
+#           Input type: "string" | "choice" | "bool" or "boolean"
+#       description: String
+#           [Required]
+#           Help text shown to user
+#       options: Vec<String>
+#           [Optional]  default: null
+#           Array of valid choices
+#           Only required and usable for "choice" type inputs
+#       required: bool
+#           [Optional]  default: false
+#           Whether input must be provided
+#       secret: bool
+#           [Optional]  default: false
+#           Hides value in logs/output
+#       short: String
+#           [Optional]  default: null
+#           Short flag format (e.g., "-n")
+#       long: String
+#           [Optional]  default: "--<input_key>"
+#           Long flag format (e.g., "--name")
+#       default: String
+#           [Optional]  default: null
+#           Default value for the input if not provided
+#
+inputs:
+  name:
+    type: string
+    description: "A name to say hello to!"
+    required: true
+    secret: false
+    short: -n
+    long: --name
+    default: "World"
+  force:
+    type: boolean
+    description: "Run this with force, maybe?"
+    short: -f
+    long: --force
+  environment:
+    type: choice
+    description: "Environment to run this!"
+    options:
+      - staging
+      - production
+    required: false
+    secret: false
+    short: -e
+    long: --environment
+    default: "production"
+
+##  Command Steps
+#
+#   steps:
+#     ...
+#     - id: String
+#           [Required]
+#           Unique identifier for the step
+#           No whitespace allowed
+#       name: String
+#           [Optional]  default: null
+#           Human-readable step description
+#       when: String
+#           [Optional]  default: null
+#           Conditional expression to control the step execution
+#       run:
+#         shell: String
+#           [Optional]  default: OS default shell
+#           Shell to execute command (e.g., "bash", "powershell")
+#         environment: Map<String, String>
+#           [Optional]  default: null
+#           Override configuration.environment for this step only
+#           Supports same syntax as configuration.environment
+#         working_directory: String
+#           [Optional]  default: configuration.working_directory
+#           Override working directory for this step only
+#         command: String
+#           [Required if no script]
+#           Inline command/script to execute
+#         script: String
+#           [Required if no command]
+#           Path to external script file
+#         args: List | Map
+#           [Optional]  default: null
+#           Arguments passed to command/script
+#           Formats:
+#             - List: ["arg1", "arg2", "arg3"]
+#             - Map: {"key1": "value1", "key2": "@{inputs.name}"}
+#
+steps:
+  - id: "{step_id}"
+    name: "{step_name}"
+    run:
+      shell: "{shell}"
+      working_directory: null
+      environment:
+        VAR_TWO: "ANOTHER_VALUE_456"
+      command: |
+        {command}
+"#;
+
+        #[cfg(unix)]
+        let default_shell: &'static str = "bash";
+
+        #[cfg(windows)]
+        let default_shell: &'static str = "powershell";
+
+        let schema: CommandSchema = CommandSchema {
             version: "1.0".to_string(),
             name: command_path.replace(path::MAIN_SEPARATOR_STR, " "),
             inputs: None,
-            description: Some("A new minici command".to_string()),
+            description: Some("A new mici command".to_string()),
             usage: Some(format!(
-                "mci {}",
+                "mici {}",
                 command_path.replace(path::MAIN_SEPARATOR_STR, " ")
             )),
             configuration: CommandSchemaConfiguration {
@@ -103,17 +269,20 @@ impl NewCommand {
                 working_directory: None,
             },
             steps: vec![CommandSchemaStep {
-                id: "run".to_string(),
-                name: Some("run".to_string()),
+                id: "say_hello".to_string(),
+                name: Some("Say hello on terminal".to_string()),
                 when: None,
                 run: CommandSchemaStepRun {
-                    shell: Some("/bin/bash".to_string()),
-                    always: Some(false),
+                    shell: Some(default_shell.to_string()),
                     args: None,
                     environment: None,
                     working_directory: None,
                     execution: CommandSchemaStepRunExecution::Command {
-                        command: "echo 'Hello, World!'".to_string(),
+                        command: r#"
+echo "Hello, @{inputs.name}!"
+"#
+                        .trim()
+                        .to_string(),
                     },
                 },
             }],
@@ -123,7 +292,23 @@ impl NewCommand {
             fs::create_dir_all(parent)?;
         }
 
-        let yaml_content = serde_yaml::to_string(&schema)?;
+        let yaml_content = TEMPLATE
+            .trim_start()
+            .replace("{version}", &schema.version)
+            .replace("{name}", &schema.name)
+            .replace("{description}", &schema.description.unwrap())
+            .replace("{usage}", &schema.usage.unwrap())
+            .replace(
+                "{confirm}",
+                &schema.configuration.confirm.unwrap_or_default().to_string(),
+            )
+            .replace("{step_id}", &schema.steps[0].id)
+            .replace("{step_name}", &schema.steps[0].name.as_ref().unwrap())
+            .replace("{shell}", &schema.steps[0].run.shell.as_ref().unwrap())
+            .replace(
+                "{command}",
+                &schema.steps[0].run.execution.get_command().unwrap(),
+            );
         fs::write(&file_path, yaml_content)?;
 
         printdoc! {"

@@ -1,34 +1,40 @@
-use crate::cli::schemas::v1::CommandSchema;
+use crate::cli::schemas::{v1::CommandSchema, validation::SchemaValidator};
+use crate::errors::command::CommandError;
+use miette::NamedSource;
 use std::path::Path;
 
-pub fn parse_command_file(path: &String) -> Result<CommandSchema, serde_yaml::Error> {
-    let command_yaml: String = std::fs::read_to_string(Path::new(&path)).unwrap();
-    let command: CommandSchema = serde_yaml::from_str(&command_yaml)?;
+pub fn parse_command_file(path: &String) -> Result<CommandSchema, CommandError> {
+    let yaml_content = std::fs::read_to_string(Path::new(&path))
+        .map_err(|_| CommandError::FileNotFound { path: path.clone() })?;
 
-    return Ok(command);
-}
+    let schema: CommandSchema = serde_yaml::from_str(&yaml_content).map_err(|err| {
+        let span = if let Some(location) = err.location() {
+            let line = location.line();
+            let column = location.column();
 
-pub fn validate_command_file(path: &String) -> Result<CommandSchema, Box<dyn std::error::Error>> {
-    if !Path::new(path).exists() {
-        return Err(format!("Command file not found: {}", path).into());
-    }
+            let offset = yaml_content
+                .lines()
+                .take(line.saturating_sub(1))
+                .map(|l| l.len() + 1)
+                .sum::<usize>()
+                + column;
 
-    let command_yaml = std::fs::read_to_string(Path::new(path))?;
-    let command: CommandSchema = serde_yaml::from_str(&command_yaml)?;
+            let length = 1;
 
-    // Basic validation
-    // TODO: Do more...
-    if command.version.is_empty() {
-        return Err("Command schema version cannot be empty".into());
-    }
+            (offset, length).into()
+        } else {
+            (0, 1).into()
+        };
 
-    if command.version != "1" {
-        return Err("Command schema version must be 1".into());
-    }
+        CommandError::YamlSyntaxError {
+            src: NamedSource::new(path.clone(), yaml_content.clone()),
+            span,
+            err,
+        }
+    })?;
 
-    if command.name.is_empty() {
-        return Err("Command name cannot be empty".into());
-    }
+    let mut validator = SchemaValidator::new(yaml_content, path.clone());
+    validator.validate(&schema)?;
 
-    Ok(command)
+    Ok(schema)
 }

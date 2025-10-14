@@ -4,34 +4,34 @@ use indoc::printdoc;
 use crate::{
     EXECUTABLE,
     cli::core::base_command::BaseCommand,
-    utils::fs::{get_command_file, get_commands_folder, get_project_folder},
+    utils::{
+        fs::{get_command_file, get_commands_folder, get_project_folder},
+        yaml::parse_command_file,
+    },
 };
 use std::{
-    env,
     error::Error,
     path::{self, Path},
-    process::Command,
 };
 
 #[allow(dead_code)]
-pub struct EditCommand {
+pub struct ValidateCommand {
     pub base: BaseCommand,
 }
 
-impl EditCommand {
+impl ValidateCommand {
     pub const fn new() -> Self {
-        EditCommand {
+        ValidateCommand {
             base: BaseCommand {
-                name: "mici edit",
-                description: "Edit given command with the default editor.",
-                synopsis: "mici edit <command>...",
+                name: "mici validate",
+                description: "Validate the given command's specification.",
+                synopsis: "mici validate <command>...",
                 options: "
     <command>...        (argument)
-    Path to a command to edit in the default editor (e.g., 'project deploy').
+    Path to a command to validate (e.g., 'project deploy').
                 ",
                 usage: "
-    mici edit project deploy     # Opens `.../project/deploy.yml` command
-                                # in the default editor
+    mici validate project deploy     # Validates `.../project/deploy.yml`
                 ",
             },
         }
@@ -43,7 +43,7 @@ impl EditCommand {
 
         if !mici_exist {
             printdoc! {"
-                    {} Can't edit commands.
+                    {} Can't validate commands.
 
                       I don't see any existing configuration at {}
                       Try running {} {}
@@ -58,7 +58,7 @@ impl EditCommand {
 
         if !commands_folder_exist {
             printdoc! {"
-                    {} Can't edit command.
+                    {} Can't validate command.
 
                       I don't see any existing commands at {}
                       Try creating a command with {} {}
@@ -73,14 +73,14 @@ impl EditCommand {
 
         if command_args.is_empty() {
             printdoc! {"
-                    {} Can't edit command.
+                    {} Can't validate command.
 
                       Expecting a direct path to the command as arguments.
                       Check the exact usage with {} {}
                 ",
                 ">".bright_black(),
                 EXECUTABLE.get().unwrap().bright_yellow().bold(),
-                "edit --help".bright_yellow().bold(),
+                "validate --help".bright_yellow().bold(),
             };
 
             return Ok(());
@@ -90,7 +90,7 @@ impl EditCommand {
 
             if command_file.is_none() {
                 printdoc! {"
-                    {} Can't edit command.
+                    {} Can't validate command.
 
                       Command doesn't exists at given path {}.
                       Check the exact usage with {} {}
@@ -98,37 +98,50 @@ impl EditCommand {
                     ">".bright_black(),
                     &command_file_path.underline().bold(),
                     EXECUTABLE.get().unwrap().bright_yellow().bold(),
-                    "edit --help".bright_yellow().bold(),
+                    "validate --help".bright_yellow().bold(),
                 };
 
                 return Ok(());
             }
 
-            // Get the editor from environment variable, fallback to sensible defaults
-            let editor = env::var("EDITOR")
-                .or_else(|_| env::var("VISUAL"))
-                .unwrap_or_else(|_| {
-                    // Platform-specific defaults
-                    if cfg!(target_os = "windows") {
-                        "notepad".to_string()
-                    } else if cfg!(target_os = "macos") {
-                        "open".to_string()
-                    } else {
-                        // Linux and other Unix-like systems
-                        "nano".to_string()
-                    }
-                });
+            match parse_command_file(command_file_path) {
+                Ok(_) => {
+                    printdoc! {"
+                            {} Command is valid! 🎉
 
-            // let commands = self.edit_commands_from_path(Some(command_path.as_str()))?;
-            // Execute the editor command
-            let mut c = Command::new(&editor);
-            c.arg(&command_file_path);
-            let mut cmd = c;
+                              You can run or check the usage of the command with:
+                              {} {} {}
 
-            let status = cmd.status()?;
+                              {} {}
+                        ",
+                        "✓".bright_green(),
+                    EXECUTABLE.get().unwrap().bright_yellow().bold(),
+                        command_args.join(" ").bright_yellow().bold(),
+                        "--help".bright_black(),
+                        r#"
+                        If your command still fails due to some validation error,
+  that means our validator is lacking something.
 
-            if !status.success() {
-                return Err(format!("Failed to open command file with editor '{}'", editor).into());
+  Feel free to open an issue at
+                        "#.trim().bright_black(),
+                        env!("CARGO_PKG_REPOSITORY").bright_black().underline(),
+                    };
+
+                    // use miette::{Diagnostic, Report};
+                    // use thiserror::Error;
+
+                    // #[derive(Error, Diagnostic, Debug)]
+                    // #[error("Your command is valid! 🎉")]
+                    // #[diagnostic(help("Everything looks OK, no issues found."))]
+                    // struct SuccessMessage;
+                    // let success = Report::new(SuccessMessage);
+                    // println!("{success:?}");
+                }
+                Err(err) => {
+                    let report = miette::Report::new(err);
+                    eprintln!("{:?}", report);
+                    std::process::exit(1);
+                }
             }
         }
 
@@ -136,4 +149,4 @@ impl EditCommand {
     }
 }
 
-pub const EDIT_COMMAND: EditCommand = EditCommand::new();
+pub const VALIDATE_COMMAND: ValidateCommand = ValidateCommand::new();

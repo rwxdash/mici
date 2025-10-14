@@ -125,7 +125,7 @@ pub fn create_tmp_folder() -> String {
         .unwrap()
         .as_millis();
     let path = Path::new(&tmp_dir)
-        .join(format!("mci-fetch-{}", timestamp))
+        .join(format!("mici-fetch-{}", timestamp))
         .to_string_lossy()
         .into_owned();
 

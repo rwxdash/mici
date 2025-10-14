@@ -1,7 +1,7 @@
 use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
     runner::context::ExecutionContext,
-    utils::resolver::resolve_environment_variables,
+    utils::resolver::{resolve_environment_variables, resolve_input_variables},
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
 use std::{collections::BTreeMap, io::IsTerminal, process::Command};
@@ -127,7 +127,19 @@ impl<'a> Coordinator<'a> {
                     _ => "-c", // Default to POSIX
                 };
 
-                c.arg(flag).arg(command);
+                // Resolve @{inputs.} variables in the command
+                let empty_inputs = BTreeMap::new();
+                let resolved_command = resolve_input_variables(
+                    command,
+                    self.context
+                        .command
+                        .inputs
+                        .as_ref()
+                        .unwrap_or(&empty_inputs),
+                    &self.context.matches,
+                );
+
+                c.arg(flag).arg(&resolved_command);
                 c
             }
             CommandSchemaStepRunExecution::Script { script } => {
