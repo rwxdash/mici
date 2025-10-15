@@ -22,6 +22,7 @@ mici init
 
 # Create your first command and edit if needed
 # at `~/.mici/jobs/commands/hello.yml`
+# or run `mici edit hello` to quickly open in an editor.
 mici new hello
 
 # See what it is with --help
@@ -72,29 +73,49 @@ Create your commands as YAML files in a directory hierarchy.
 
 Each YAML file has CI-like attributes - environment variables, confirmation prompts, parallel execution, and more; allowing `mici` to customize your run of that command and generate `help` documentation based on the available information.
 
+For a full reference of how a **mici command** is structured, see [examples/.../hello.yml](examples/unix/commands/hello.yml).
+
+
 ```yaml
 version: "1.0"
-name: "deploy staging"
-description: "Deploy to staging environment"
+name: "hello"
+description: "A new mici command"
+usage: "mici hello"
 configuration:
-  confirm: true
+  confirm: false
   environment:
-    DEPLOY_ENV: "staging"
-    API_KEY: "${STAGING_API_KEY}"
+    VAR_ONE: "SOME_VALUE_123"
+    VAR_TWO: "SOME_VALUE_123"
+    IS_FORCED: "@{inputs.force}"
+    TOKEN: "${MY_PRIVATE_TOKEN}"
+  working_directory: null
+inputs:
+  name:
+    type: string
+    description: "A name to say hello to!"
+    required: true
+    secret: false
+    short: -n
+    long: --name
+    default: "World"
+  force:
+    type: boolean
+    description: "Run this with force, maybe?"
+    short: -f
+    long: --force
 steps:
-  - id: "build"
-    name: "Build application"
+  - id: "say_hello"
+    name: "Say hello on terminal"
     run:
       shell: "bash"
-      command: "npm run build"
-  - id: "deploy"
-    name: "Deploy application"
-    run:
-      shell: "bash"
-      command: "kubectl apply -f k8s/staging/"
+      working_directory: null
+      environment:
+        VAR_TWO: "ANOTHER_VALUE_456"
+      command: |
+        echo "Hello, @{inputs.name}!"
 ```
 
-That's it. Your filesystem **is** your CLI structure, and YAML **is** your configuration.
+That's it. Your filesystem **is** your CLI structure, and YAML **is** your command.
 
 ## Install
 
