@@ -16,7 +16,7 @@ pub fn resolve_environment_variables(
     use regex::Regex;
 
     let inputs_re =
-        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_][a-zA-Z0-9_]*)\}").unwrap());
+        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_-][a-zA-Z0-9_-]*)\}").unwrap());
     let env_re = ENV_RE.get_or_init(|| Regex::new(r"\$\{([A-Z_][A-Z0-9_]*)\}").unwrap());
 
     let mut resolved: BTreeMap<String, String> = BTreeMap::new();
@@ -56,13 +56,31 @@ pub fn resolve_environment_variables(
                             let resolved_value = match input.r#type.as_str() {
                                 "boolean" | "bool" => {
                                     if matches.opt_present(variable_name) {
-                                        "true".to_string()
+                                        #[cfg(unix)]
+                                        {
+                                            "true".to_string()
+                                        }
+                                        #[cfg(windows)]
+                                        {
+                                            "$true".to_string()
+                                        }
                                     } else {
-                                        input
-                                            .default
-                                            .as_ref()
-                                            .unwrap_or(&"false".to_string())
-                                            .clone()
+                                        #[cfg(unix)]
+                                        {
+                                            input
+                                                .default
+                                                .as_ref()
+                                                .unwrap_or(&"false".to_string())
+                                                .clone()
+                                        }
+                                        #[cfg(windows)]
+                                        {
+                                            input
+                                                .default
+                                                .as_ref()
+                                                .unwrap_or(&"$false".to_string())
+                                                .clone()
+                                        }
                                     }
                                 }
                                 _ => matches
@@ -134,7 +152,7 @@ pub fn resolve_input_variables(
     matches: &getopts::Matches,
 ) -> String {
     let inputs_re =
-        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_][a-zA-Z0-9_]*)\}").unwrap());
+        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_-][a-zA-Z0-9_-]*)\}").unwrap());
 
     inputs_re
         .replace_all(text, |caps: &regex::Captures| {
@@ -144,13 +162,31 @@ pub fn resolve_input_variables(
                 match input.r#type.as_str() {
                     "boolean" | "bool" => {
                         if matches.opt_present(variable_name) {
-                            "true".to_string()
+                            #[cfg(unix)]
+                            {
+                                "true".to_string()
+                            }
+                            #[cfg(windows)]
+                            {
+                                "$true".to_string()
+                            }
                         } else {
-                            input
-                                .default
-                                .as_ref()
-                                .unwrap_or(&"false".to_string())
-                                .clone()
+                            #[cfg(unix)]
+                            {
+                                input
+                                    .default
+                                    .as_ref()
+                                    .unwrap_or(&"false".to_string())
+                                    .clone()
+                            }
+                            #[cfg(windows)]
+                            {
+                                input
+                                    .default
+                                    .as_ref()
+                                    .unwrap_or(&"$false".to_string())
+                                    .clone()
+                            }
                         }
                     }
                     _ => matches
