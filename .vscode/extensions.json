@@ -4,5 +4,6 @@
         "rust-lang.rust-analyzer",
         "timonwong.shellcheck",
         "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
     ]
 }
