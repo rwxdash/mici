@@ -2,6 +2,7 @@ use crate::utils::traits::ExportAsHashMap;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::OnceLock;
 
 // Enums
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
@@ -64,10 +65,10 @@ pub struct CommandSchemaInput {
     pub r#type: String,
     pub description: String,
     pub options: Option<Vec<String>>,
-    #[serde(default = "default_schema_input_required")]
-    pub required: Option<bool>,
-    #[serde(default = "default_schema_input_secret")]
-    pub secret: Option<bool>,
+    #[serde(default)]
+    pub required: bool,
+    #[serde(default)]
+    pub secret: bool,
     pub short: Option<String>,
     pub long: Option<String>,
     pub default: Option<String>,
@@ -75,8 +76,8 @@ pub struct CommandSchemaInput {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct CommandSchemaConfiguration {
-    #[serde(default = "default_schema_configuration_confirm")]
-    pub confirm: Option<bool>,
+    #[serde(default)]
+    pub confirm: bool,
     pub environment: Option<BTreeMap<String, Option<String>>>,
     pub working_directory: Option<String>,
 }
@@ -100,6 +101,15 @@ pub struct CommandSchemaStepRun {
     pub working_directory: Option<String>,
 }
 
+impl CommandSchema {
+    pub fn inputs_or_empty(&self) -> &BTreeMap<String, CommandSchemaInput> {
+        static EMPTY: OnceLock<BTreeMap<String, CommandSchemaInput>> = OnceLock::new();
+        self.inputs
+            .as_ref()
+            .unwrap_or_else(|| EMPTY.get_or_init(BTreeMap::new))
+    }
+}
+
 // Traits
 impl ExportAsHashMap for CommandSchema {
     fn as_hash_map(&self) -> HashMap<&str, &str> {
@@ -112,23 +122,11 @@ impl ExportAsHashMap for CommandSchema {
         );
         content.insert("usage", self.usage.as_ref().map_or("", |v| v).trim());
 
-        return content;
+        content
     }
 }
 
-// Default Function
-fn default_schema_configuration_confirm() -> Option<bool> {
-    return Some(false);
-}
-
-fn default_schema_input_required() -> Option<bool> {
-    return Some(false);
-}
-
-fn default_schema_input_secret() -> Option<bool> {
-    return Some(false);
-}
-
+// Default Functions
 fn default_schema_step_run_shell() -> Option<String> {
-    return None;
+    None
 }

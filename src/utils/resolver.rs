@@ -8,16 +8,52 @@ const MAX_ITERATIONS: usize = 10;
 static INPUTS_RE: OnceLock<Regex> = OnceLock::new();
 static ENV_RE: OnceLock<Regex> = OnceLock::new();
 
+fn get_inputs_re() -> &'static Regex {
+    INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_-][a-zA-Z0-9_-]*)\}").unwrap())
+}
+
+fn get_env_re() -> &'static Regex {
+    ENV_RE.get_or_init(|| Regex::new(r"\$\{([A-Z_][A-Z0-9_]*)\}").unwrap())
+}
+
+/// Resolve a single input variable reference to its value.
+fn resolve_input_value(
+    name: &str,
+    input: &CommandSchemaInput,
+    matches: &getopts::Matches,
+) -> String {
+    match input.r#type.as_str() {
+        "boolean" | "bool" => {
+            if matches.opt_present(name) {
+                #[cfg(unix)]
+                { "true".to_string() }
+                #[cfg(windows)]
+                { "$true".to_string() }
+            } else {
+                #[cfg(unix)]
+                {
+                    input.default.as_deref().unwrap_or("false").to_string()
+                }
+                #[cfg(windows)]
+                {
+                    input.default.as_deref().unwrap_or("$false").to_string()
+                }
+            }
+        }
+        _ => matches
+            .opt_str(name)
+            .or_else(|| input.default.clone())
+            .unwrap_or_default(),
+    }
+}
+
 pub fn resolve_environment_variables(
     environment: &BTreeMap<String, Option<String>>,
     inputs: &BTreeMap<String, CommandSchemaInput>,
     matches: &getopts::Matches,
 ) -> BTreeMap<String, String> {
-    use regex::Regex;
-
-    let inputs_re =
-        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_-][a-zA-Z0-9_-]*)\}").unwrap());
-    let env_re = ENV_RE.get_or_init(|| Regex::new(r"\$\{([A-Z_][A-Z0-9_]*)\}").unwrap());
+    let inputs_re = get_inputs_re();
+    let env_re = get_env_re();
 
     let mut resolved: BTreeMap<String, String> = BTreeMap::new();
     let mut pending: BTreeMap<String, String> = BTreeMap::new();
@@ -53,43 +89,7 @@ pub fn resolve_environment_variables(
                         let variable_name = &caps[1];
 
                         if let Some(input) = inputs.get(variable_name) {
-                            let resolved_value = match input.r#type.as_str() {
-                                "boolean" | "bool" => {
-                                    if matches.opt_present(variable_name) {
-                                        #[cfg(unix)]
-                                        {
-                                            "true".to_string()
-                                        }
-                                        #[cfg(windows)]
-                                        {
-                                            "$true".to_string()
-                                        }
-                                    } else {
-                                        #[cfg(unix)]
-                                        {
-                                            input
-                                                .default
-                                                .as_ref()
-                                                .unwrap_or(&"false".to_string())
-                                                .clone()
-                                        }
-                                        #[cfg(windows)]
-                                        {
-                                            input
-                                                .default
-                                                .as_ref()
-                                                .unwrap_or(&"$false".to_string())
-                                                .clone()
-                                        }
-                                    }
-                                }
-                                _ => matches
-                                    .opt_str(variable_name)
-                                    .or_else(|| input.default.clone())
-                                    .unwrap_or_else(|| "".to_string()),
-                            };
-
-                            resolved_value
+                            resolve_input_value(variable_name, input, matches)
                         } else {
                             "".to_string()
                         }
@@ -151,49 +151,14 @@ pub fn resolve_input_variables(
     inputs: &BTreeMap<String, CommandSchemaInput>,
     matches: &getopts::Matches,
 ) -> String {
-    let inputs_re =
-        INPUTS_RE.get_or_init(|| Regex::new(r"@\{inputs\.([a-zA-Z_-][a-zA-Z0-9_-]*)\}").unwrap());
+    let inputs_re = get_inputs_re();
 
     inputs_re
         .replace_all(text, |caps: &regex::Captures| {
             let variable_name = &caps[1];
 
             if let Some(input) = inputs.get(variable_name) {
-                match input.r#type.as_str() {
-                    "boolean" | "bool" => {
-                        if matches.opt_present(variable_name) {
-                            #[cfg(unix)]
-                            {
-                                "true".to_string()
-                            }
-                            #[cfg(windows)]
-                            {
-                                "$true".to_string()
-                            }
-                        } else {
-                            #[cfg(unix)]
-                            {
-                                input
-                                    .default
-                                    .as_ref()
-                                    .unwrap_or(&"false".to_string())
-                                    .clone()
-                            }
-                            #[cfg(windows)]
-                            {
-                                input
-                                    .default
-                                    .as_ref()
-                                    .unwrap_or(&"$false".to_string())
-                                    .clone()
-                            }
-                        }
-                    }
-                    _ => matches
-                        .opt_str(variable_name)
-                        .or_else(|| input.default.clone())
-                        .unwrap_or_else(|| "".to_string()),
-                }
+                resolve_input_value(variable_name, input, matches)
             } else {
                 "".to_string()
             }

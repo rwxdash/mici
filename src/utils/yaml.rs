@@ -3,9 +3,11 @@ use crate::errors::command::CommandError;
 use miette::NamedSource;
 use std::path::Path;
 
-pub fn parse_command_file(path: &String) -> Result<CommandSchema, CommandError> {
-    let yaml_content = std::fs::read_to_string(Path::new(&path))
-        .map_err(|_| CommandError::FileNotFound { path: path.clone() })?;
+pub fn parse_command_file(path: &Path) -> Result<CommandSchema, CommandError> {
+    let path_str = path.display().to_string();
+    let yaml_content = std::fs::read_to_string(path).map_err(|_| CommandError::FileNotFound {
+        path: path_str.clone(),
+    })?;
 
     let schema: CommandSchema = serde_yaml::from_str(&yaml_content).map_err(|err| {
         let span = if let Some(location) = err.location() {
@@ -27,13 +29,13 @@ pub fn parse_command_file(path: &String) -> Result<CommandSchema, CommandError> 
         };
 
         CommandError::YamlSyntaxError {
-            src: NamedSource::new(path.clone(), yaml_content.clone()),
+            src: NamedSource::new(path_str.clone(), yaml_content.clone()),
             span,
             err,
         }
     })?;
 
-    let mut validator = SchemaValidator::new(yaml_content, path.clone());
+    let mut validator = SchemaValidator::new(yaml_content, path_str);
     validator.validate(&schema)?;
 
     Ok(schema)

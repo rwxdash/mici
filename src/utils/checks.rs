@@ -1,6 +1,7 @@
 use colored::Colorize;
 use indoc::printdoc;
 
+use crate::cli::core::CORE_COMMANDS;
 use crate::utils::print::print_general_help;
 use crate::utils::print::print_individual_help;
 
@@ -28,15 +29,11 @@ pub fn catch_help_and_version_commands(args: &Vec<String>) {
 
             if command_path.is_empty() {
                 print_general_help();
-            } else {
-                match &args.get(1).map(String::as_ref) {
-                    Some("init") | Some("fetch") | Some("new") | Some("list") | Some("edit")
-                    | Some("config") => {
-                        print_individual_help(args.get(1).unwrap());
-                    }
-                    _ => {
-                        print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
-                    }
+            } else if let Some(cmd) = args.get(1) {
+                if CORE_COMMANDS.contains(&cmd.as_str()) {
+                    print_individual_help(cmd);
+                } else {
+                    print_individual_help(&command_path.join(path::MAIN_SEPARATOR_STR));
                 }
             }
 

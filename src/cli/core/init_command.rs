@@ -1,6 +1,3 @@
-extern crate colored;
-extern crate serde;
-
 use crate::EXECUTABLE;
 use crate::cli::core::base_command::BaseCommand;
 use crate::cli::core::base_command::InitConfiguration;
@@ -12,8 +9,6 @@ use std::error::Error;
 use std::fs;
 use std::io::Write;
 use std::path;
-use std::path::Path;
-use std::process;
 
 const MICI_REPOSITORY: &str = "git@github.com:rwxdash/mici.git";
 
@@ -49,9 +44,9 @@ impl InitCommand {
     }
 
     pub fn run(&self, clean: bool) -> Result<(), Box<dyn Error>> {
-        let mici_exist = Path::new(&get_project_folder()).exists();
+        let project_folder = get_project_folder();
 
-        if mici_exist {
+        if project_folder.exists() {
             if clean {
                 printdoc! {"
                     {} Found existing mici setup
@@ -61,20 +56,14 @@ impl InitCommand {
                     ">".bright_black(),
                     ">".bright_black(),
                     "Removing".bright_yellow(),
-                    &get_project_folder().bright_yellow()
+                    project_folder.display().to_string().bright_yellow()
                 }
 
-                if let Err(e) = fs::remove_dir_all(&get_project_folder()) {
-                    println!(
-                        "  {}{}",
-                        "Error while removing ".bright_red(),
-                        &get_project_folder().bright_red().underline().bold()
-                    );
-                    println!("  {}", e.to_string().bright_red());
-                    process::exit(1)
-                } else {
-                    println!("  {}", "Cleanup finished!\n".bright_green());
-                }
+                fs::remove_dir_all(&project_folder).map_err(|e| {
+                    format!("Error while removing {}: {}", project_folder.display(), e)
+                })?;
+
+                println!("  {}", "Cleanup finished!\n".bright_green());
             } else {
                 printdoc! {"
                     {} Found existing mici setup
@@ -138,12 +127,13 @@ impl InitCommand {
         }
 
         // ~/.mici
-        create_folder_at(&get_project_folder());
-        create_folder_at(&get_jobs_folder());
-        create_folder_at(&get_commands_folder());
-        create_folder_at(&get_scripts_folder());
+        create_folder_at(&get_project_folder())?;
+        create_folder_at(&get_jobs_folder())?;
+        create_folder_at(&get_commands_folder())?;
+        create_folder_at(&get_scripts_folder())?;
 
-        let mut config_yaml = fs::File::create(&get_config_file())?;
+        let config_file = get_config_file();
+        let mut config_yaml = fs::File::create(&config_file)?;
         let config_yaml_as_string = serde_yaml::to_string(&init_configuration)?;
         config_yaml.write_all(&config_yaml_as_string.as_bytes())?;
 
@@ -153,14 +143,14 @@ impl InitCommand {
               Run {} {} to pull your commands from this repository
             ",
             ">".bright_black(),
-            &get_project_folder().bright_cyan().bold(),
+            project_folder.display().to_string().bright_cyan().bold(),
             path::MAIN_SEPARATOR_STR,
             "config.yml".bright_cyan().bold(),
             EXECUTABLE.get().unwrap(),
             "fetch".blue().bold(),
         }
 
-        return Ok(());
+        Ok(())
     }
 }
 

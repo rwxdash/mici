@@ -94,8 +94,8 @@ impl SchemaValidator {
         }
     }
 
-    fn validate_input_secret(&mut self, input_name: &str, input_type: &str, secret: Option<bool>) {
-        if secret == Some(true) && input_type != "string" {
+    fn validate_input_secret(&mut self, input_name: &str, input_type: &str, secret: bool) {
+        if secret && input_type != "string" {
             let secret_span = self.find_nested_field_span(&["inputs", input_name, "secret"]);
             let type_span = self.find_nested_field_span(&["inputs", input_name, "type"]);
 

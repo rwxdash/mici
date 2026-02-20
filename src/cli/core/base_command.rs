@@ -21,7 +21,7 @@ impl ExportAsHashMap for BaseCommand {
         content.insert("options", self.options.trim());
         content.insert("usage", self.usage.trim());
 
-        return content;
+        content
     }
 }
 

@@ -4,7 +4,7 @@ use crate::{
     utils::resolver::{resolve_environment_variables, resolve_input_variables},
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
-use std::{collections::BTreeMap, io::IsTerminal, process::Command};
+use std::{io::IsTerminal, process::Command};
 
 pub struct Coordinator<'a> {
     context: ExecutionContext<'a>,
@@ -16,16 +16,13 @@ impl<'a> Coordinator<'a> {
     }
 
     pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        // println!("{:?}", self.context.inputs);
-        // println!("{:?}", self.schema);
-
         println!("> Starting execution of: {}", self.context.command.name);
 
         if let Some(description) = &self.context.command.description {
             println!("  {}", description);
         }
 
-        if self.context.command.configuration.confirm.unwrap_or(false) {
+        if self.context.command.configuration.confirm {
             let confirmation = if std::io::stdin().is_terminal() {
                 println!("> This command requires your confirmation!");
 
@@ -90,7 +87,7 @@ impl<'a> Coordinator<'a> {
             );
 
             // Exec step
-            let _ = self.execute_step(step);
+            self.execute_step(step)?;
 
             println!("  Step completed: {}", step.id);
             println!()
@@ -116,6 +113,8 @@ impl<'a> Coordinator<'a> {
             }
         };
 
+        let inputs = self.context.command.inputs_or_empty();
+
         let mut cmd = match &step.run.execution {
             CommandSchemaStepRunExecution::Command { command } => {
                 let mut c = Command::new(shell);
@@ -128,16 +127,8 @@ impl<'a> Coordinator<'a> {
                 };
 
                 // Resolve @{inputs.} variables in the command
-                let empty_inputs = BTreeMap::new();
-                let resolved_command = resolve_input_variables(
-                    command,
-                    self.context
-                        .command
-                        .inputs
-                        .as_ref()
-                        .unwrap_or(&empty_inputs),
-                    &self.context.matches,
-                );
+                let resolved_command =
+                    resolve_input_variables(command, inputs, &self.context.matches);
 
                 c.arg(flag).arg(&resolved_command);
                 c
@@ -161,15 +152,9 @@ impl<'a> Coordinator<'a> {
         // Set Environment Variables
         if let Some(command_environment_variables) = &self.context.command.configuration.environment
         {
-            let empty_inputs = BTreeMap::new();
-
             let resolved_env = resolve_environment_variables(
                 command_environment_variables,
-                self.context
-                    .command
-                    .inputs
-                    .as_ref()
-                    .unwrap_or(&empty_inputs),
+                inputs,
                 &self.context.matches,
             );
 
@@ -179,15 +164,9 @@ impl<'a> Coordinator<'a> {
         }
 
         if let Some(step_environment_variables) = &step.run.environment {
-            let empty_inputs = BTreeMap::new();
-
             let resolved_env = resolve_environment_variables(
                 step_environment_variables,
-                self.context
-                    .command
-                    .inputs
-                    .as_ref()
-                    .unwrap_or(&empty_inputs),
+                inputs,
                 &self.context.matches,
             );
 
