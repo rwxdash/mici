@@ -26,9 +26,13 @@ fn resolve_input_value(
         "boolean" | "bool" => {
             if matches.opt_present(name) {
                 #[cfg(unix)]
-                { "true".to_string() }
+                {
+                    "true".to_string()
+                }
                 #[cfg(windows)]
-                { "$true".to_string() }
+                {
+                    "$true".to_string()
+                }
             } else {
                 #[cfg(unix)]
                 {

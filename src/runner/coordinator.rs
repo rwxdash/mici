@@ -48,7 +48,10 @@ impl<'a> Coordinator<'a> {
                                 false
                             }
                             _ => {
-                                tracing::warn!("Piped value '{}' is invalid. Acceptable values: y|yes|true|1 or n|no|false|0", &trimmed);
+                                tracing::warn!(
+                                    "Piped value '{}' is invalid. Acceptable values: y|yes|true|1 or n|no|false|0",
+                                    &trimmed
+                                );
                                 false
                             }
                         }

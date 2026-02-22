@@ -236,8 +236,7 @@ fn validate_invalid_yaml_syntax() {
 
 #[test]
 fn validate_invalid_step_command_and_script() {
-    let tmp =
-        setup_mici_home(&[("bad.yml", &fixture("invalid_step_command_and_script.yml"))]);
+    let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_step_command_and_script.yml"))]);
 
     mici()
         .env("HOME", tmp.path())

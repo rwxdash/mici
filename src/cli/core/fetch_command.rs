@@ -97,8 +97,7 @@ impl FetchCommand {
             .clone(&upstream_url, &tmp_folder)
             .map_err(|e| format!("Failed to clone the repository: {}", e))?;
 
-        clear_jobs_folder()
-            .map_err(|e| format!("Failed to clear the jobs directory: {}", e))?;
+        clear_jobs_folder().map_err(|e| format!("Failed to clear the jobs directory: {}", e))?;
 
         let upstream_cmd_path = init_configuration
             .upstream_cmd_path
