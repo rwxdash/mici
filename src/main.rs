@@ -56,6 +56,30 @@ fn run() -> miette::Result<()> {
     if config_file.exists() {
         match fs::read_to_string(&config_file) {
             Ok(config_yaml_str) => {
+                // Warn about unknown config keys by comparing against struct fields
+                if let Ok(parsed) = serde_yaml::from_str::<serde_yaml::Value>(&config_yaml_str)
+                    && let Ok(reference) = serde_yaml::to_value(InitConfiguration::default())
+                    && let (Some(parsed_map), Some(known_map)) =
+                        (parsed.as_mapping(), reference.as_mapping())
+                {
+                    for key in parsed_map.keys() {
+                        if !known_map.contains_key(key)
+                            && let Some(key_str) = key.as_str()
+                        {
+                            eprintln!(
+                                "{}",
+                                format!(
+                                    "{} Warning: Unknown config key '{}' in {}",
+                                    ">".bright_black(),
+                                    key_str,
+                                    config_file.display()
+                                )
+                                .on_bright_yellow()
+                            );
+                        }
+                    }
+                }
+
                 match serde_yaml::from_str::<InitConfiguration>(&config_yaml_str) {
                     Ok(config) => {
                         // Control terminal colors
@@ -77,18 +101,26 @@ fn run() -> miette::Result<()> {
                     }
                     Err(e) => {
                         eprintln!(
-                            "{} Warning: Failed to parse config file: {}",
-                            ">".bright_black(),
-                            e
+                            "{}",
+                            format!(
+                                "{} Warning: Failed to parse config file: {}",
+                                ">".bright_black(),
+                                e
+                            )
+                            .on_bright_yellow()
                         );
                     }
                 }
             }
             Err(e) => {
                 eprintln!(
-                    "{} Warning: Failed to read config file: {}",
-                    ">".bright_black(),
-                    e
+                    "{}",
+                    format!(
+                        "{} Warning: Failed to read config file: {}",
+                        ">".bright_black(),
+                        e
+                    )
+                    .on_bright_yellow()
                 );
             }
         }

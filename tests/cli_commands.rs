@@ -260,6 +260,39 @@ fn validate_invalid_multiple_errors() {
         .stderr(predicate::str::contains("step_id_duplicate"));
 }
 
+// ─── Config validation ───
+
+#[test]
+fn config_warns_on_unknown_keys() {
+    let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
+
+    // Overwrite config with an unknown key
+    std::fs::write(
+        tmp.path().join(".mici/config.yml"),
+        "disable_pager: true\ntypo_key: true\n",
+    )
+    .unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["list"])
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Unknown config key 'typo_key'"));
+}
+
+#[test]
+fn config_no_warning_on_valid_keys() {
+    let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["list"])
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Unknown config key").not());
+}
+
 // ─── List ───
 
 #[test]

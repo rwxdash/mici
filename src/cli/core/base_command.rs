@@ -25,7 +25,7 @@ impl ExportAsHashMap for BaseCommand {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Default, PartialEq, Deserialize)]
 pub struct InitConfiguration {
     pub upstream_url: Option<String>,
     pub upstream_cmd_path: Option<String>,
