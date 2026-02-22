@@ -3,6 +3,8 @@ use std::{collections::BTreeMap, sync::OnceLock};
 
 use crate::cli::schemas::v1::CommandSchemaInput;
 
+pub const SECRET_MASK: &str = "***";
+
 const MAX_ITERATIONS: usize = 10;
 
 static INPUTS_RE: OnceLock<Regex> = OnceLock::new();

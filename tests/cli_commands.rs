@@ -588,6 +588,19 @@ fn dynamic_command_help() {
 }
 
 #[test]
+fn dynamic_command_help_masks_secret_default() {
+    let tmp = setup_mici_home(&[("secret.yml", &fixture("valid_secret_input.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["secret", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("***"))
+        .stdout(predicate::str::contains("my-token").not());
+}
+
+#[test]
 fn dynamic_command_help_shows_choice_options() {
     let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
 

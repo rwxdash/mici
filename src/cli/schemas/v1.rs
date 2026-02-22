@@ -146,16 +146,15 @@ pub fn validate_inputs(
                     });
                 }
 
-                if let Some(ref val) = value {
-                    if let Some(ref options) = input.options {
-                        if !options.contains(val) {
-                            return Err(CommandError::InputInvalidChoice {
-                                input_name: name.clone(),
-                                provided: val.clone(),
-                                expected: options.join(", "),
-                            });
-                        }
-                    }
+                if let Some(ref val) = value
+                    && let Some(ref options) = input.options
+                    && !options.contains(val)
+                {
+                    return Err(CommandError::InputInvalidChoice {
+                        input_name: name.clone(),
+                        provided: val.clone(),
+                        expected: options.join(", "),
+                    });
                 }
             }
             _ => {
