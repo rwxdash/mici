@@ -1,0 +1,29 @@
+# @test: validate should PASS
+# @run:  mici choice --env staging
+# @expect-stdout: deploying to staging
+# @run:  mici choice
+# @expect-stdout: deploying to production
+# @note: Tests choice type input with options and a default value
+
+version: "1.0"
+name: "choice-input"
+description: "Tests choice type inputs"
+
+configuration:
+  confirm: false
+
+inputs:
+  env:
+    type: choice
+    description: "Target environment"
+    options:
+      - staging
+      - production
+    short: -e
+    long: --env
+    default: "production"
+
+steps:
+  - id: "deploy"
+    run:
+      command: "echo \"deploying to @{inputs.env}\""

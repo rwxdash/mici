@@ -1,0 +1,21 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici step-fail
+# @expect-exit: non-zero
+# @expect-stderr: Step 'fail' failed
+# @note: Tests that a step with a non-zero exit code propagates the error
+#        properly instead of silently continuing
+
+version: "1.0"
+name: "step-failure"
+description: "A command where a step intentionally fails"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "succeed"
+    run:
+      command: "echo this works"
+  - id: "fail"
+    run:
+      command: "exit 1"

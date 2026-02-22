@@ -1,0 +1,18 @@
+# @test: validate should FAIL — serde deserialization error
+# @expect-errors:
+#   - mici::yaml::invalid_syntax  (step has both "command" and "script")
+# @note: A step's run block must have exactly one of "command" or "script",
+#        not both. This fails at serde deserialization since CommandSchemaStepRunExecution
+#        is an untagged enum that can't match both fields simultaneously.
+
+version: "1.0"
+name: "both-command-and-script"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "ambiguous"
+    run:
+      command: "echo hello"
+      script: "./deploy.sh"

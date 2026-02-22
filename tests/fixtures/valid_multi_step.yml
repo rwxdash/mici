@@ -1,0 +1,27 @@
+# @test: validate should PASS
+# @run:  mici multi-step
+# @expect-stdout: step-1
+# @expect-stdout: step-2
+# @expect-stdout: step-3
+# @note: Tests multiple sequential steps all execute in order
+
+version: "1.0"
+name: "multi-step"
+description: "Command with multiple steps"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "first"
+    name: "First step"
+    run:
+      command: "echo step-1"
+  - id: "second"
+    name: "Second step"
+    run:
+      command: "echo step-2"
+  - id: "third"
+    name: "Third step"
+    run:
+      command: "echo step-3"

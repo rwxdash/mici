@@ -1,0 +1,16 @@
+# @test: validate should FAIL — serde deserialization error
+# @expect-errors:
+#   - mici::yaml::invalid_syntax  (step is missing both "command" and "script" in run)
+# @note: This fails at YAML parse time because serde can't deserialize the
+#        CommandSchemaStepRunExecution enum without either "command" or "script"
+
+version: "1.0"
+name: "step-no-run"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "empty-run"
+    run:
+      shell: "bash"

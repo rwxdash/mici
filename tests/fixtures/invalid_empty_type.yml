@@ -1,0 +1,19 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::input_type_empty  (type is an empty string)
+
+version: "1.0"
+name: "empty-type"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: ""
+    description: "Input with empty type"
+
+steps:
+  - id: "noop"
+    run:
+      command: "echo noop"

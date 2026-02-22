@@ -1,3 +1,9 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::version_invalid  (version "99.0" is not "1" or "1.0")
+#   - mici::schema::name_empty       (name is empty string)
+#   - mici::schema::steps_empty      (steps array is empty)
+
 version: "99.0"
 name: ""
 

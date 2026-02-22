@@ -1,3 +1,5 @@
+#![allow(unused_assignments)]
+
 use miette::{Diagnostic, NamedSource, SourceSpan};
 use thiserror::Error;
 
@@ -31,19 +33,38 @@ pub enum CommandError {
         error_count: usize,
     },
 
-    #[error("Cannot find a valid command at {path}")]
+    #[error("Cannot find command file at '{path}'")]
     #[diagnostic(
         code(mici::io::not_found),
         help("Check if the file exists or create one using 'mici new'")
     )]
-    FileNotFound { path: String },
+    FileNotFound {
+        path: String,
+        #[source]
+        err: std::io::Error,
+    },
 
-    #[error("Failed to read command file at {path}")]
+    #[error("Permission denied reading command file at '{path}'")]
     #[diagnostic(
         code(mici::io::permission_denied),
         help("Check the file permissions and ensure you have read access")
     )]
-    FilePermissionDenied { path: String },
+    FilePermissionDenied {
+        path: String,
+        #[source]
+        err: std::io::Error,
+    },
+
+    #[error("Failed to read command file at '{path}'")]
+    #[diagnostic(
+        code(mici::io::read_error),
+        help("Check that the file is accessible and not corrupted")
+    )]
+    FileReadError {
+        path: String,
+        #[source]
+        err: std::io::Error,
+    },
 }
 
 #[derive(Error, Debug, Diagnostic)]

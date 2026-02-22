@@ -1,0 +1,16 @@
+# @test: validate should PASS
+# @run:  mici no-inputs
+# @expect-stdout: no inputs needed
+# @note: A valid command with no inputs section at all
+
+version: "1.0"
+name: "no-inputs"
+description: "A command with no inputs"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "run"
+    run:
+      command: "echo \"no inputs needed\""

@@ -1,0 +1,15 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::step_id_whitespace  (step id contains spaces)
+# @note: Step ids must not contain whitespace — use hyphens or underscores
+
+version: "1.0"
+name: "step-whitespace-id"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "my step"
+    run:
+      command: "echo bad id"

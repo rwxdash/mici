@@ -1,0 +1,34 @@
+# @test: validate should FAIL with multiple errors
+# @expect-errors:
+#   - mici::schema::input_type_invalid   (type "integer" is not valid)
+#   - mici::schema::secret_requires_string  (secret on a choice input)
+#   - mici::schema::choice_requires_options  (choice without options)
+#   - mici::schema::step_id_whitespace   (step id has a space)
+#   - mici::schema::step_id_duplicate    (two steps with id "build")
+# @note: Tests that the validator collects ALL errors instead of stopping at the first one
+
+version: "1.0"
+name: "many-errors"
+
+configuration:
+  confirm: false
+
+inputs:
+  count:
+    type: integer
+    description: "Invalid type"
+  mode:
+    type: choice
+    description: "Choice with no options and secret"
+    secret: true
+
+steps:
+  - id: "my step"
+    run:
+      command: "echo first"
+  - id: "build"
+    run:
+      command: "echo build"
+  - id: "build"
+    run:
+      command: "echo duplicate"

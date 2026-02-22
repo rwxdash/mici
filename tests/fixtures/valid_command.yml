@@ -1,3 +1,9 @@
+# @test: validate should PASS
+# @run:  mici hello --name Rust
+# @expect-stdout: Hello, Rust!
+# @run:  mici hello
+# @expect-stdout: Hello, World!
+
 version: "1.0"
 name: "test-hello"
 description: "A test command"

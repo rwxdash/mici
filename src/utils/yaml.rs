@@ -5,8 +5,19 @@ use std::path::Path;
 
 pub fn parse_command_file(path: &Path) -> Result<CommandSchema, CommandError> {
     let path_str = path.display().to_string();
-    let yaml_content = std::fs::read_to_string(path).map_err(|_| CommandError::FileNotFound {
-        path: path_str.clone(),
+    let yaml_content = std::fs::read_to_string(path).map_err(|err| match err.kind() {
+        std::io::ErrorKind::NotFound => CommandError::FileNotFound {
+            path: path_str.clone(),
+            err,
+        },
+        std::io::ErrorKind::PermissionDenied => CommandError::FilePermissionDenied {
+            path: path_str.clone(),
+            err,
+        },
+        _ => CommandError::FileReadError {
+            path: path_str.clone(),
+            err,
+        },
     })?;
 
     let schema: CommandSchema = serde_yaml::from_str(&yaml_content).map_err(|err| {

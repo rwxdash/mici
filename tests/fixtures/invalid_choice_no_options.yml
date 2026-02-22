@@ -1,0 +1,19 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::choice_requires_options  (type "choice" but no options array)
+
+version: "1.0"
+name: "choice-no-options"
+
+configuration:
+  confirm: false
+
+inputs:
+  env:
+    type: choice
+    description: "A choice without any options"
+
+steps:
+  - id: "noop"
+    run:
+      command: "echo noop"

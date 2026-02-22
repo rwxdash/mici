@@ -1,0 +1,9 @@
+# @test: validate should FAIL — YAML parse error
+# @expect-errors:
+#   - mici::yaml::invalid_syntax  (broken YAML — bad indentation and unclosed quote)
+
+version: "1.0"
+name: "broken-yaml
+  this line breaks the yaml parser
+configuration:
+confirm: false
