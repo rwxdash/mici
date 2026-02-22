@@ -256,7 +256,6 @@ pub fn print_individual_help(command: &String) {
             Err(err) => {
                 let report = miette::Report::new(err);
                 eprintln!("{:?}", report);
-                std::process::exit(1);
             }
         }
     } else if folder_exist {

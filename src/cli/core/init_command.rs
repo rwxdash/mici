@@ -94,8 +94,7 @@ impl InitCommand {
                 "{}  They are already on a git repository",
                 "Yes".bright_green().bold()
             ))
-            .interact()
-            .unwrap();
+            .interact()?;
 
         let init_configuration: InitConfiguration;
 
@@ -103,13 +102,11 @@ impl InitCommand {
             let upstream_url: String = Input::with_theme(&ColorfulTheme::default())
                 .with_prompt(format!("{}", "Upstream repository URL for your commands",))
                 .default(MICI_REPOSITORY.to_string())
-                .interact_text()
-                .unwrap();
+                .interact_text()?;
             let upstream_cmd_path: String = Input::with_theme(&ColorfulTheme::default())
                 .with_prompt(format!("{}", "Path for your commands in the repository",))
                 .default(MICI_EXAMPLES_PATH.to_string())
-                .interact_text()
-                .unwrap();
+                .interact_text()?;
 
             init_configuration = InitConfiguration {
                 upstream_url: Some(upstream_url),

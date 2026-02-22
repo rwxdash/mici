@@ -16,10 +16,10 @@ impl<'a> Coordinator<'a> {
     }
 
     pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
-        println!("> Starting execution of: {}", self.context.command.name);
+        tracing::info!("Starting execution of: {}", self.context.command.name);
 
         if let Some(description) = &self.context.command.description {
-            println!("  {}", description);
+            tracing::info!("  {}", description);
         }
 
         if self.context.command.configuration.confirm {
@@ -29,76 +29,60 @@ impl<'a> Coordinator<'a> {
                 Confirm::with_theme(&ColorfulTheme::default())
                     .with_prompt("Do you want to continue with the execution?")
                     .wait_for_newline(true)
-                    .interact()
-                    .unwrap()
+                    .interact()?
             } else {
-                // Non-interactive (piped/scripted) - read from stdin
-                println!("> Command confirmation is piped into the command!");
+                tracing::info!("Command confirmation is piped into the command");
 
                 let mut input = String::new();
                 match std::io::stdin().read_line(&mut input) {
                     Ok(_) => {
                         let trimmed = input.trim().to_lowercase();
 
-                        // TODO: Handle logging in a better way
                         match trimmed.as_str() {
                             "y" | "yes" | "true" | "1" => {
-                                println!("> Command is confirmed with {}", &trimmed);
-
+                                tracing::debug!("Command confirmed with {}", &trimmed);
                                 true
                             }
                             "n" | "no" | "false" | "0" => {
-                                println!("> Command is not confirmed with {}", &trimmed);
-
+                                tracing::debug!("Command not confirmed with {}", &trimmed);
                                 false
                             }
                             _ => {
-                                println!("> Piped value {} is invalid", &trimmed);
-                                println!("  Acceptable values are:");
-                                println!("      y | yes | true  | 1");
-                                println!("      n | no  | false | 0");
-
+                                tracing::warn!("Piped value '{}' is invalid. Acceptable values: y|yes|true|1 or n|no|false|0", &trimmed);
                                 false
                             }
                         }
                     }
-                    Err(_) => false, // Default to false for safety on read errors
+                    Err(_) => false,
                 }
             };
 
             if !confirmation {
-                println!("> Command execution cancelled...");
+                tracing::info!("Command execution cancelled");
                 return Ok(());
             }
         }
 
-        println!("> Executing {} steps", self.context.command.steps.len());
-
-        // TODO: check when/always conditions for steps
-        // I'll need an expression evaluator for the full funcitonality
-        // We'll skip this for now.
+        tracing::info!("Executing {} steps", self.context.command.steps.len());
 
         for (index, step) in self.context.command.steps.iter().enumerate() {
-            println!(
-                "> {}/{}: {}",
+            tracing::info!(
+                "Step {}/{}: {}",
                 index + 1,
                 self.context.command.steps.len(),
                 step.id
             );
 
-            // Exec step
             self.execute_step(step)?;
 
-            println!("  Step completed: {}", step.id);
-            println!()
+            tracing::debug!("Step completed: {}", step.id);
         }
 
-        println!("Done!");
+        tracing::info!("Done!");
         Ok(())
     }
 
     fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), Box<dyn std::error::Error>> {
-        // TODO: Handle shell not being present and default to OS choice
         let shell = match &step.run.shell {
             Some(s) => s.as_str(),
             None => {
@@ -123,10 +107,9 @@ impl<'a> Coordinator<'a> {
                     "bash" | "sh" | "zsh" | "fish" => "-c",
                     "powershell" | "pwsh" => "-Command",
                     "cmd" => "/c",
-                    _ => "-c", // Default to POSIX
+                    _ => "-c",
                 };
 
-                // Resolve @{inputs.} variables in the command
                 let resolved_command =
                     resolve_input_variables(command, inputs, &self.context.matches);
 

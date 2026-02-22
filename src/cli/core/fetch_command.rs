@@ -91,24 +91,31 @@ impl FetchCommand {
             builder.branch(b);
         }
 
+        tracing::info!("Cloning from {}", &upstream_url);
+
         builder
             .clone(&upstream_url, &tmp_folder)
-            .expect("Failed to clone the repository");
+            .map_err(|e| format!("Failed to clone the repository: {}", e))?;
 
-        clear_jobs_folder().expect("Failed to clear the jobs directory");
+        clear_jobs_folder()
+            .map_err(|e| format!("Failed to clear the jobs directory: {}", e))?;
 
         let upstream_cmd_path = init_configuration
             .upstream_cmd_path
             .ok_or("No upstream command path configured.")?;
 
         copy_directory(&tmp_folder.join(&upstream_cmd_path), &get_jobs_folder())
-            .expect("Failed to copy upstream to the jobs directory");
+            .map_err(|e| format!("Failed to copy upstream to the jobs directory: {}", e))?;
 
         let git_dir = get_jobs_folder().join(".git");
         if git_dir.exists() {
-            fs::remove_dir_all(&git_dir).expect("Failed to remove .git directory");
+            fs::remove_dir_all(&git_dir)
+                .map_err(|e| format!("Failed to remove .git directory: {}", e))?;
         }
-        fs::remove_dir_all(&tmp_folder).expect("Failed to remove temporary folder");
+        fs::remove_dir_all(&tmp_folder)
+            .map_err(|e| format!("Failed to remove temporary folder: {}", e))?;
+
+        tracing::info!("Fetch complete");
 
         Ok(())
     }
