@@ -1,0 +1,27 @@
+# @test: validate should PASS
+# @run:  mici env-vars
+# @expect-stdout: global-value
+# @expect-stdout: step-override
+# @note: Windows variant — uses PowerShell $env:VAR syntax
+
+version: "1.0"
+name: "env-vars"
+description: "Tests environment variable resolution"
+
+configuration:
+  confirm: false
+  environment:
+    MY_VAR: "global-value"
+    OVERRIDE_ME: "global-value"
+
+steps:
+  - id: "show-global"
+    name: "Show global env var"
+    run:
+      command: "echo $env:MY_VAR"
+  - id: "show-override"
+    name: "Show step-level override"
+    run:
+      environment:
+        OVERRIDE_ME: "step-override"
+      command: "echo $env:OVERRIDE_ME"

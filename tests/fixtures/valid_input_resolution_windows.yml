@@ -1,0 +1,34 @@
+# @test: validate should PASS
+# @run:  mici input-res --greeting Hi --target Earth
+# @expect-stdout: Hi, Earth!
+# @run:  mici input-res
+# @expect-stdout: Hello, World!
+# @note: Windows variant — uses PowerShell $env:VAR syntax
+
+version: "1.0"
+name: "input-resolution"
+description: "Tests input variable resolution in commands and environment"
+
+configuration:
+  confirm: false
+  environment:
+    RESOLVED_NAME: "@{inputs.target}"
+
+inputs:
+  greeting:
+    type: string
+    description: "The greeting word"
+    short: -g
+    long: --greeting
+    default: "Hello"
+  target:
+    type: string
+    description: "Who to greet"
+    short: -t
+    long: --target
+    default: "World"
+
+steps:
+  - id: "greet"
+    run:
+      command: "echo \"@{inputs.greeting}, $env:RESOLVED_NAME!\""

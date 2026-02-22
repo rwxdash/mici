@@ -342,6 +342,11 @@ fn run_multi_step() {
         .stdout(predicate::str::contains("step-3"));
 }
 
+// Env var and input resolution tests use shell-specific syntax:
+//   Unix (bash):       echo $VAR
+//   Windows (PowerShell): echo $env:VAR
+
+#[cfg(unix)]
 #[test]
 fn run_env_vars() {
     let tmp = setup_mici_home(&[("env-vars.yml", &fixture("valid_env_vars.yml"))]);
@@ -355,6 +360,21 @@ fn run_env_vars() {
         .stdout(predicate::str::contains("step-override"));
 }
 
+#[cfg(windows)]
+#[test]
+fn run_env_vars() {
+    let tmp = setup_mici_home(&[("env-vars.yml", &fixture("valid_env_vars_windows.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("env-vars")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("global-value"))
+        .stdout(predicate::str::contains("step-override"));
+}
+
+#[cfg(unix)]
 #[test]
 fn run_input_resolution_with_args() {
     let tmp = setup_mici_home(&[("input-res.yml", &fixture("valid_input_resolution.yml"))]);
@@ -367,9 +387,42 @@ fn run_input_resolution_with_args() {
         .stdout(predicate::str::contains("Hi, Earth!"));
 }
 
+#[cfg(windows)]
+#[test]
+fn run_input_resolution_with_args() {
+    let tmp = setup_mici_home(&[(
+        "input-res.yml",
+        &fixture("valid_input_resolution_windows.yml"),
+    )]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["input-res", "--greeting", "Hi", "--target", "Earth"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hi, Earth!"));
+}
+
+#[cfg(unix)]
 #[test]
 fn run_input_resolution_defaults() {
     let tmp = setup_mici_home(&[("input-res.yml", &fixture("valid_input_resolution.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("input-res")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hello, World!"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_input_resolution_defaults() {
+    let tmp = setup_mici_home(&[(
+        "input-res.yml",
+        &fixture("valid_input_resolution_windows.yml"),
+    )]);
 
     mici()
         .env("MICI_HOME", tmp.path())
@@ -412,7 +465,7 @@ fn run_bool_input_present() {
         .args(["booltest", "--dry-run"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("dry_run=true"));
+        .stdout(predicate::str::is_match("(?i)dry_run=true").unwrap());
 }
 
 #[test]
@@ -424,7 +477,7 @@ fn run_bool_input_absent() {
         .arg("booltest")
         .assert()
         .success()
-        .stdout(predicate::str::contains("dry_run=false"));
+        .stdout(predicate::str::is_match("(?i)dry_run=false").unwrap());
 }
 
 #[test]
