@@ -1,0 +1,10 @@
+version: "1.0"
+name: "minimal"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "echo"
+    run:
+      command: "echo ok"
