@@ -141,10 +141,11 @@ fn run() -> miette::Result<()> {
         }
         Some("fetch") => {
             opts.optopt("b", "branch", "", "");
+            opts.optflag("f", "force", "");
             let matches = parse_opts(&opts, &args[1..])?;
 
             FETCH_COMMAND
-                .run(matches.opt_str("b"))
+                .run(matches.opt_str("b"), matches.opt_present("force"))
                 .map_err(CliError::from)?;
         }
         Some("new") => run_args_command(&opts, &args, |a| NEW_COMMAND.run(a))?,

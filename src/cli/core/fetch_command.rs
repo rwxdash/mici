@@ -4,9 +4,11 @@ use crate::utils::fs::{
     clear_jobs_folder, copy_directory, create_tmp_folder, get_config_file, get_jobs_folder,
     get_project_folder,
 };
+use dialoguer::{Confirm, theme::ColorfulTheme};
 use git2::{Cred, CredentialType, RemoteCallbacks};
 use std::error::Error;
 use std::fs;
+use std::io::IsTerminal;
 
 pub struct FetchCommand {
     pub base: BaseCommand,
@@ -32,19 +34,20 @@ impl FetchCommand {
     -b, --branch <name>     (option)
     Specify the branch to fetch and use for updating local commands.
     Defaults to the repository's default branch if not provided.
+
+    -f, --force             (flag)
+    Skip the confirmation prompt. Useful for CI/scripts.
                 ",
                 usage: "
     mici fetch           # Fetches default branch from remote
     mici fetch -b dev    # Fetches `dev` branch from remote
+    mici fetch --force   # Fetches without confirmation
                 ",
             },
         }
     }
 
-    pub fn run(&self, branch: Option<String>) -> Result<(), Box<dyn Error>> {
-        // TODO: Warn that this cant be undone!
-        // TODO: Better logging
-
+    pub fn run(&self, branch: Option<String>, force: bool) -> Result<(), Box<dyn Error>> {
         let project_folder = get_project_folder();
         if !project_folder.exists() {
             return Err("mici is not initialized. Run 'mici init' first.".into());
@@ -61,6 +64,29 @@ impl FetchCommand {
         let upstream_url = init_configuration
             .upstream_url
             .ok_or("No upstream URL configured. Run 'mici init' to set one.")?;
+
+        if force {
+            println!(
+                "> Confirmation skipped with --force. This operation is destructive and will replace all local commands."
+            );
+        } else {
+            println!("> This will replace all local commands with the upstream version.");
+            println!("> Use --force to skip this confirmation.");
+
+            let confirmed = if std::io::stdin().is_terminal() {
+                Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Do you want to continue?")
+                    .default(false)
+                    .interact()?
+            } else {
+                false
+            };
+
+            if !confirmed {
+                println!("> Fetch cancelled.");
+                return Ok(());
+            }
+        }
 
         let tmp_folder = create_tmp_folder()?;
 
