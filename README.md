@@ -150,21 +150,38 @@ cargo uninstall mici
 
 There are some major stories to complete before I call this project version 1.0. Here's what I have in my mind so far:
 
-#### TODOs
+#### Done
 
-- [ ] Implement tests and CI checks
+- [x] Implement tests and CI checks
 - [x] Implement the basic runner
     + [x] Handle step confirmation
     + [x] Basic execution of a simple command
     + [x] Implement environment variable substitution
     + [x] Make basic execution run on Windows
-    + [ ] Implement `script: "scripts/..."` usage for steps
-- [ ] Better logging throughout the program
-    + [ ] Error/Debug log level can be set through config file
-    + [ ] Can be set to None/Silent
-    + [ ] Implement tracing
-      + [ ] Add tracing for rust/otel     # https://github.com/tokio-rs/tracing
 - [x] The default schema in new command should have proper default shell for linux/windows
+- [x] Basic validation for commands
+- [x] Handle errors with miette
+- [x] Implement tracing
+
+#### Up next
+
+- [ ] Runtime input validation
+    + [ ] Reject invalid values for `choice` inputs
+    + [ ] Enforce `required` inputs — error when not provided and no default
+- [ ] Implement `script: "scripts/..."` usage for steps
+- [ ] Step output capture (stdout/stderr per step)
+    + Prerequisite for `@{steps.<STEP_ID>.output}` in expressions
+- [ ] Secret masking for `secret: true` inputs in logs/output
+- [ ] Config validation — reject unknown/misspelled keys in `config.yml`
+- [ ] Better `fetch` UX — confirmation prompt and/or backup before nuking local commands
+
+#### Later
+
+- [ ] Logging improvements
+    + [ ] Log level configurable through `config.yml`
+    + [ ] Silent mode
+    + [ ] OpenTelemetry export
+- [ ] Parallel step execution
 - [ ] Implement expression evaluator for `when:` in steps
     + [ ] `on_failure()`                  # any previous step failed
     + [ ] `on_success()`                  # all previous steps passed
@@ -173,13 +190,9 @@ There are some major stories to complete before I call this project version 1.0.
     + [ ] `${ENV_VAR} == "production"`
     + [ ] `@{inputs.cleanup}`
     + [ ] `@{inputs.branch} == "main"`
-    + [ ] `@{steps.<STEP_ID>.output} == "success"` (Or shell code? not sure)
+    + [ ] `@{steps.<STEP_ID>.output} == "success"`
     + [ ] Accept operators and chains
-    + [ ] Implement variable masking for `secret: true`
-- [x] Basic validation for commands
-- [x] Handle errors with miette           # https://github.com/zkat/miette
-    + [x] Might need a new error class
-- [ ] Think about runner/step-execution isolation
+- [ ] Runner/step-execution isolation
     + with chroot/containers/microvms
 
 ## Contributions and Code of Conduct
