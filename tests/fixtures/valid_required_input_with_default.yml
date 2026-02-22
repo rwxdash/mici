@@ -1,0 +1,25 @@
+# @test: validate should PASS
+# @run:  mici required-default
+# @expect-stdout: Hello, World!
+# @note: Tests that required + default succeeds without user input
+
+version: "1.0"
+name: "required-input-with-default"
+description: "Tests required input with default value"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: string
+    description: "Your name"
+    required: true
+    short: -n
+    long: --name
+    default: "World"
+
+steps:
+  - id: "greet"
+    run:
+      command: "echo \"Hello, @{inputs.name}!\""

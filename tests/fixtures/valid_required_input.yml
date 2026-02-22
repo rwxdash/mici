@@ -1,0 +1,26 @@
+# @test: validate should PASS
+# @run:  mici required --name Alice
+# @expect-stdout: Hello, Alice!
+# @run:  mici required
+# @expect-fail: required input 'name' was not provided
+# @note: Tests required input enforcement — no default, must be provided
+
+version: "1.0"
+name: "required-input"
+description: "Tests required input enforcement"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: string
+    description: "Your name"
+    required: true
+    short: -n
+    long: --name
+
+steps:
+  - id: "greet"
+    run:
+      command: "echo \"Hello, @{inputs.name}!\""

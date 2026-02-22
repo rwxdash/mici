@@ -3,10 +3,14 @@ pub mod errors;
 pub mod runner;
 pub mod utils;
 use crate::{
-    cli::core::{
-        base_command::InitConfiguration, config_command::CONFIG_COMMAND,
-        edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-        list_command::LIST_COMMAND, new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
+    cli::{
+        core::{
+            base_command::InitConfiguration, config_command::CONFIG_COMMAND,
+            edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
+            list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+            validate_command::VALIDATE_COMMAND,
+        },
+        schemas::v1,
     },
     errors::cli::CliError,
     runner::{context::ExecutionContext, coordinator::Coordinator},
@@ -236,6 +240,10 @@ fn run_dynamic_command(args: &[String], opts: &mut Options) -> miette::Result<()
     }
 
     let matches = parse_opts(opts, option_args)?;
+
+    if let Some(inputs) = &cmd.inputs {
+        v1::validate_inputs(inputs, &matches)?;
+    }
 
     let context = ExecutionContext::new(&cmd, &matches);
     let coordinator = Coordinator::with_context(context);

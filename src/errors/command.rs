@@ -65,6 +65,24 @@ pub enum CommandError {
         #[source]
         err: std::io::Error,
     },
+
+    #[error("Required input '{input_name}' was not provided and has no default value")]
+    #[diagnostic(
+        code(mici::input::required),
+        help("Provide a value using '--{input_name} <value>'")
+    )]
+    InputRequired { input_name: String },
+
+    #[error("Input '{input_name}' received '{provided}', which is not a valid option")]
+    #[diagnostic(
+        code(mici::input::invalid_choice),
+        help("Valid options are: {expected}")
+    )]
+    InputInvalidChoice {
+        input_name: String,
+        provided: String,
+        expected: String,
+    },
 }
 
 #[derive(Error, Debug, Diagnostic)]

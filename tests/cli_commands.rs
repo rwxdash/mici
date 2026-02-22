@@ -492,6 +492,60 @@ fn run_no_inputs_command() {
         .stdout(predicate::str::contains("no inputs needed"));
 }
 
+// ─── Run: input validation ───
+
+#[test]
+fn run_choice_rejects_invalid_value() {
+    let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["choice", "--env", "invalid"])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("not a valid option"))
+        .stderr(predicate::str::contains("staging, production"));
+}
+
+#[test]
+fn run_required_input_missing() {
+    let tmp = setup_mici_home(&[("required.yml", &fixture("valid_required_input.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("required")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("not provided"));
+}
+
+#[test]
+fn run_required_input_provided() {
+    let tmp = setup_mici_home(&[("required.yml", &fixture("valid_required_input.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["required", "--name", "Alice"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hello, Alice!"));
+}
+
+#[test]
+fn run_required_input_with_default_succeeds() {
+    let tmp = setup_mici_home(&[(
+        "required-default.yml",
+        &fixture("valid_required_input_with_default.yml"),
+    )]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("required-default")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Hello, World!"));
+}
+
 // ─── Run: failures ───
 
 #[test]
