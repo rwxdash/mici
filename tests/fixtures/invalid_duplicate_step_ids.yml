@@ -1,0 +1,17 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::step_id_duplicate  (two steps share the id "build")
+
+version: "1.0"
+name: "duplicate-ids"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "build"
+    run:
+      command: "echo first"
+  - id: "build"
+    run:
+      command: "echo duplicate"

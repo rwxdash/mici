@@ -11,12 +11,18 @@ use crate::{
 };
 use std::{
     error::Error,
-    path::{self, Path},
+    path::{self},
 };
 
 #[allow(dead_code)]
 pub struct ValidateCommand {
     pub base: BaseCommand,
+}
+
+impl Default for ValidateCommand {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ValidateCommand {
@@ -38,10 +44,10 @@ impl ValidateCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let mici_exist: bool = Path::new(&get_project_folder()).exists();
-        let commands_folder_exist = Path::new(&get_commands_folder()).exists();
+        let project_folder = get_project_folder();
+        let commands_folder = get_commands_folder();
 
-        if !mici_exist {
+        if !project_folder.exists() {
             printdoc! {"
                     {} Can't validate commands.
 
@@ -49,14 +55,14 @@ impl ValidateCommand {
                       Try running {} {}
                 ",
                 ">".bright_black(),
-                &get_project_folder().underline().bold(),
+                project_folder.display().to_string().underline().bold(),
                 EXECUTABLE.get().unwrap(),
                 "init".bright_yellow().bold(),
             };
             return Ok(());
         }
 
-        if !commands_folder_exist {
+        if !commands_folder.exists() {
             printdoc! {"
                     {} Can't validate command.
 
@@ -64,7 +70,7 @@ impl ValidateCommand {
                       Try creating a command with {} {}
                 ",
                 ">".bright_black(),
-                &get_commands_folder().underline().bold(),
+                commands_folder.display().to_string().underline().bold(),
                 EXECUTABLE.get().unwrap(),
                 "new".bright_yellow().bold(),
             };
@@ -86,9 +92,10 @@ impl ValidateCommand {
             return Ok(());
         } else {
             let (command_file_path, command_file) =
-                &get_command_file(command_args.join(path::MAIN_SEPARATOR_STR));
+                get_command_file(command_args.join(path::MAIN_SEPARATOR_STR))?;
 
             if command_file.is_none() {
+                let display_path = command_file_path.display();
                 printdoc! {"
                     {} Can't validate command.
 
@@ -96,7 +103,7 @@ impl ValidateCommand {
                       Check the exact usage with {} {}
                 ",
                     ">".bright_black(),
-                    &command_file_path.underline().bold(),
+                    display_path.to_string().underline().bold(),
                     EXECUTABLE.get().unwrap().bright_yellow().bold(),
                     "validate --help".bright_yellow().bold(),
                 };
@@ -104,7 +111,7 @@ impl ValidateCommand {
                 return Ok(());
             }
 
-            match parse_command_file(command_file_path) {
+            match parse_command_file(&command_file_path) {
                 Ok(_) => {
                     printdoc! {"
                             {} Command is valid! 🎉
@@ -126,16 +133,6 @@ impl ValidateCommand {
                         "#.trim().bright_black(),
                         env!("CARGO_PKG_REPOSITORY").bright_black().underline(),
                     };
-
-                    // use miette::{Diagnostic, Report};
-                    // use thiserror::Error;
-
-                    // #[derive(Error, Diagnostic, Debug)]
-                    // #[error("Your command is valid! 🎉")]
-                    // #[diagnostic(help("Everything looks OK, no issues found."))]
-                    // struct SuccessMessage;
-                    // let success = Report::new(SuccessMessage);
-                    // println!("{success:?}");
                 }
                 Err(err) => {
                     let report = miette::Report::new(err);

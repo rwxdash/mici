@@ -1,9 +1,9 @@
 use crate::{
     EXECUTABLE,
     cli::core::{
-        config_command::CONFIG_COMMAND, edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND,
-        init_command::INIT_COMMAND, list_command::LIST_COMMAND, new_command::NEW_COMMAND,
-        validate_command::VALIDATE_COMMAND,
+        CORE_COMMANDS, config_command::CONFIG_COMMAND, edit_command::EDIT_COMMAND,
+        fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND, list_command::LIST_COMMAND,
+        new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
     },
     utils::{
         fs::{get_command_file, get_commands_folder},
@@ -15,7 +15,9 @@ use crate::{
 use colored::*;
 use handlebars::*;
 use indoc::printdoc;
-use std::path::{self, Path};
+use std::collections::HashMap;
+use std::path;
+use std::sync::OnceLock;
 
 #[cfg(not(target_os = "windows"))]
 use pager::Pager;
@@ -44,21 +46,52 @@ fn pager() {
     // No-op
 }
 
-pub fn print_general_help() {
-    let mut handlebars = Handlebars::new();
+fn get_handlebars() -> &'static Handlebars<'static> {
+    static HBS: OnceLock<Handlebars<'static>> = OnceLock::new();
+    HBS.get_or_init(|| {
+        let mut hbs = Handlebars::new();
 
-    let template_asset = include_bytes!("../../templates/general_help.hbs");
+        let general_template = include_bytes!("../../templates/general_help.hbs");
+        let individual_template = include_bytes!("../../templates/individual_help.hbs");
 
-    handlebars
-        .register_template_string("general_help", std::str::from_utf8(template_asset).unwrap())
+        hbs.register_template_string(
+            "general_help",
+            std::str::from_utf8(general_template).unwrap(),
+        )
+        .unwrap();
+        hbs.register_template_string(
+            "individual_help",
+            std::str::from_utf8(individual_template).unwrap(),
+        )
         .unwrap();
 
-    handlebars_helper!(bold: |p: String| p.bold().to_string());
-    handlebars_helper!(pad_right: |s: String, width: u8| format!("{:<width$}", s, width = width as usize));
-    handlebars_helper!(concat: |a: String, b: String| format!("{}{}", a, b));
-    handlebars.register_helper("bold", Box::new(bold));
-    handlebars.register_helper("pad_right", Box::new(pad_right));
-    handlebars.register_helper("concat", Box::new(concat));
+        handlebars_helper!(bold: |p: String| p.bold().to_string());
+        handlebars_helper!(pad_right: |s: String, width: u8| format!("{:<width$}", s, width = width as usize));
+        handlebars_helper!(concat: |a: String, b: String| format!("{}{}", a, b));
+        hbs.register_helper("bold", Box::new(bold));
+        hbs.register_helper("pad_right", Box::new(pad_right));
+        hbs.register_helper("concat", Box::new(concat));
+
+        hbs
+    })
+}
+
+/// Get the base hash map for a core command by name.
+fn core_command_help_data(name: &str) -> Option<HashMap<&str, &str>> {
+    match name {
+        "init" => Some(INIT_COMMAND.base.as_hash_map()),
+        "fetch" => Some(FETCH_COMMAND.base.as_hash_map()),
+        "new" => Some(NEW_COMMAND.base.as_hash_map()),
+        "edit" => Some(EDIT_COMMAND.base.as_hash_map()),
+        "validate" => Some(VALIDATE_COMMAND.base.as_hash_map()),
+        "list" => Some(LIST_COMMAND.base.as_hash_map()),
+        "config" => Some(CONFIG_COMMAND.base.as_hash_map()),
+        _ => None,
+    }
+}
+
+pub fn print_general_help() {
+    let handlebars = get_handlebars();
 
     use serde_json::json;
 
@@ -111,209 +144,143 @@ pub fn print_general_help() {
     println!("{}", handlebars.render("general_help", &data).unwrap());
 }
 
-pub fn print_individual_help(command: &String) {
-    let mut handlebars = Handlebars::new();
+pub fn print_individual_help(command: &str) {
+    let handlebars = get_handlebars();
 
-    let template_asset = include_bytes!("../../templates/individual_help.hbs");
+    // Handle core commands
+    if CORE_COMMANDS.contains(&command)
+        && let Some(data) = core_command_help_data(command)
+    {
+        pager();
+        println!("{}", handlebars.render("individual_help", &data).unwrap(),);
+        return;
+    }
 
-    handlebars
-        .register_template_string(
-            "individual_help",
-            std::str::from_utf8(template_asset).unwrap(),
-        )
-        .unwrap();
+    // Handle dynamic (user-defined) commands
+    let commands_folder = get_commands_folder();
+    let as_folder = commands_folder.join(command);
+    let folder_exist: bool = as_folder.exists();
 
-    handlebars_helper!(bold: |p: String| p.bold().to_string());
-    handlebars.register_helper("bold", Box::new(bold));
-
-    match command.as_ref() {
-        "init" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &INIT_COMMAND.base.as_hash_map())
-                    .unwrap(),
+    let (command_file_path, command_file) = match get_command_file(command.to_string()) {
+        Ok(result) => result,
+        Err(err) => {
+            eprintln!(
+                "{} {}\n  {}",
+                ">".bright_black(),
+                "Error:".bright_red(),
+                err
             );
+            return;
         }
-        "fetch" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &FETCH_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        "new" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &NEW_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        "edit" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &EDIT_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        "validate" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &VALIDATE_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            )
-        }
-        "list" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &LIST_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        "config" => {
-            pager();
-            println!(
-                "{}",
-                handlebars
-                    .render("individual_help", &CONFIG_COMMAND.base.as_hash_map())
-                    .unwrap(),
-            );
-        }
-        _ => {
-            let as_folder = Path::new(&get_commands_folder())
-                .join(&command)
-                .to_string_lossy()
-                .into_owned();
+    };
+    let command_exist: bool = command_file.is_some();
 
-            let folder_exist: bool = Path::new(&as_folder).exists();
+    if command_exist {
+        match parse_command_file(&command_file_path) {
+            Ok(cmd) => {
+                let cmd_map: &mut HashMap<&str, &str> = &mut cmd.as_hash_map();
 
-            let (command_file_path, command_file) = &get_command_file(command.to_string());
-            let command_exist: bool = command_file.is_some();
+                let mut options: String = String::new();
+                let synopsis: String;
 
-            if command_exist {
-                match parse_command_file(command_file_path) {
-                    Ok(cmd) => {
-                        let cmd_map: &mut std::collections::HashMap<&str, &str> =
-                            &mut cmd.as_hash_map();
+                if let Some(inputs) = &cmd.inputs {
+                    synopsis = format!(
+                        "{} {} {}",
+                        EXECUTABLE.get().unwrap(),
+                        &command.replace(path::MAIN_SEPARATOR_STR, " "),
+                        "[options]".bright_black()
+                    );
 
-                        let mut options: String = String::new();
-                        let synopsis: String;
+                    for (input_name, input_def) in inputs {
+                        let flag_type = match input_def.r#type.as_str() {
+                            "boolean" => "(flag)",
+                            _ => "(option)",
+                        };
 
-                        if let Some(inputs) = &cmd.inputs {
-                            synopsis = format!(
-                                "{} {} {}",
-                                EXECUTABLE.get().unwrap(),
-                                &command.replace(path::MAIN_SEPARATOR_STR, " "),
-                                "[options]".bright_black()
-                            );
-
-                            for (input_name, input_def) in inputs {
-                                let flag_type = match input_def.r#type.as_str() {
-                                    "boolean" => "(flag)",
-                                    _ => "(option)",
-                                };
-
-                                let mut flags: String = String::from("");
-                                if let Some(short) = &input_def.short {
-                                    flags.push_str(&format!("{}, ", short));
-                                }
-                                if let Some(long) = &input_def.long {
-                                    flags.push_str(long);
-                                } else {
-                                    flags.push_str(&format!("--{}", input_name));
-                                }
-
-                                let secret_marker = if input_def.secret.unwrap_or(false) {
-                                    " (secret)".bright_black()
-                                } else {
-                                    "".normal()
-                                };
-
-                                let required_marker = if input_def.required.unwrap_or(false) {
-                                    " (required)".bright_red()
-                                } else {
-                                    "".normal()
-                                };
-
-                                options.push_str(&format!(
-                                    "\n    {:<16} {}{}{}\n        {}",
-                                    flags,
-                                    flag_type.bright_black(),
-                                    secret_marker,
-                                    required_marker,
-                                    input_def.description
-                                ));
-
-                                if let Some(default) = &input_def.default {
-                                    options.push_str(&format!(
-                                        " (default: {})",
-                                        default.bright_blue()
-                                    ));
-                                }
-
-                                if let Some(choices) = &input_def.options {
-                                    options.push_str(&format!(
-                                        " (choices: {})",
-                                        choices.join(", ").bright_cyan()
-                                    ));
-                                }
-                            }
-                        } else {
-                            // If there are no options...
-                            synopsis = format!(
-                                "{} {}",
-                                EXECUTABLE.get().unwrap(),
-                                &command.replace(path::MAIN_SEPARATOR_STR, " "),
-                            );
+                        let mut flags: String = String::from("");
+                        if let Some(short) = &input_def.short {
+                            flags.push_str(&format!("{}, ", short));
                         }
-                        cmd_map.insert("synopsis", &synopsis.trim());
-                        cmd_map.insert("options", &options.trim());
+                        if let Some(long) = &input_def.long {
+                            flags.push_str(long);
+                        } else {
+                            flags.push_str(&format!("--{}", input_name));
+                        }
 
-                        // println!("{}", &options);
-                        pager();
-                        println!("{}", handlebars.render("individual_help", cmd_map).unwrap());
+                        let secret_marker = if input_def.secret {
+                            " (secret)".bright_black()
+                        } else {
+                            "".normal()
+                        };
+
+                        let required_marker = if input_def.required {
+                            " (required)".bright_red()
+                        } else {
+                            "".normal()
+                        };
+
+                        options.push_str(&format!(
+                            "\n    {:<16} {}{}{}\n        {}",
+                            flags,
+                            flag_type.bright_black(),
+                            secret_marker,
+                            required_marker,
+                            input_def.description
+                        ));
+
+                        if let Some(default) = &input_def.default {
+                            options.push_str(&format!(" (default: {})", default.bright_blue()));
+                        }
+
+                        if let Some(choices) = &input_def.options {
+                            options.push_str(&format!(
+                                " (choices: {})",
+                                choices.join(", ").bright_cyan()
+                            ));
+                        }
                     }
-                    Err(err) => {
-                        let report = miette::Report::new(err);
-                        eprintln!("{:?}", report);
-                        std::process::exit(1);
-                    }
+                } else {
+                    // If there are no options...
+                    synopsis = format!(
+                        "{} {}",
+                        EXECUTABLE.get().unwrap(),
+                        &command.replace(path::MAIN_SEPARATOR_STR, " "),
+                    );
                 }
-            } else if folder_exist {
-                printdoc! {"
-                    {} {} isn't a valid command, it's a directory!
-                      Run {} {} to see the available commands
-                ",
-                    ">".bright_black(),
-                    &command,
-                    EXECUTABLE.get().unwrap(),
-                    "--help".bright_yellow(),
-                }
-            } else {
-                printdoc! {"
-                    {} Couldn't find the given command at {}
-                      Try creating a new command with {} {}
-                      or run {} {} to see the available commands
-                ",
-                    ">".bright_black(),
-                    &command_file_path.underline().bold(),
-                    EXECUTABLE.get().unwrap(),
-                    "new".bright_yellow(),
-                    EXECUTABLE.get().unwrap(),
-                    "--help".bright_yellow(),
-                }
+                cmd_map.insert("synopsis", synopsis.trim());
+                cmd_map.insert("options", options.trim());
+
+                pager();
+                println!("{}", handlebars.render("individual_help", cmd_map).unwrap());
             }
+            Err(err) => {
+                let report = miette::Report::new(err);
+                eprintln!("{:?}", report);
+            }
+        }
+    } else if folder_exist {
+        printdoc! {"
+            {} {} isn't a valid command, it's a directory!
+              Run {} {} to see the available commands
+        ",
+            ">".bright_black(),
+            &command,
+            EXECUTABLE.get().unwrap(),
+            "--help".bright_yellow(),
+        }
+    } else {
+        let display_path = command_file_path.display();
+        printdoc! {"
+            {} Couldn't find the given command at {}
+              Try creating a new command with {} {}
+              or run {} {} to see the available commands
+        ",
+            ">".bright_black(),
+            display_path.to_string().underline().bold(),
+            EXECUTABLE.get().unwrap(),
+            "new".bright_yellow(),
+            EXECUTABLE.get().unwrap(),
+            "--help".bright_yellow(),
         }
     }
 }

@@ -1,0 +1,25 @@
+# @test: validate should PASS
+# @run:  mici booltest --dry-run
+# @expect-stdout: dry_run=true
+# @run:  mici booltest
+# @expect-stdout: dry_run=false
+# @note: Tests boolean input flag presence/absence and platform-aware defaults
+
+version: "1.0"
+name: "bool-input"
+description: "Tests boolean input resolution"
+
+configuration:
+  confirm: false
+
+inputs:
+  dry-run:
+    type: boolean
+    description: "Run without making changes"
+    short: -d
+    long: --dry-run
+
+steps:
+  - id: "check"
+    run:
+      command: "echo \"dry_run=@{inputs.dry-run}\""

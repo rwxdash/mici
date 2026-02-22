@@ -1,0 +1,20 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::input_type_invalid  (type "number" is not a valid input type)
+# @note: Valid types are: string, choice, bool, boolean
+
+version: "1.0"
+name: "bad-input-type"
+
+configuration:
+  confirm: false
+
+inputs:
+  count:
+    type: number
+    description: "This type doesn't exist"
+
+steps:
+  - id: "noop"
+    run:
+      command: "echo noop"

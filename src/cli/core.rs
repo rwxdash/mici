@@ -1,3 +1,5 @@
+pub const CORE_COMMANDS: &[&str] = &["init", "fetch", "new", "edit", "validate", "list", "config"];
+
 pub mod base_command;
 pub mod config_command;
 pub mod edit_command;

@@ -2,20 +2,13 @@ pub mod cli;
 pub mod errors;
 pub mod runner;
 pub mod utils;
-extern crate dirs;
-extern crate getopts;
-extern crate handlebars;
-extern crate serde_json;
-
-#[cfg(not(target_os = "windows"))]
-extern crate pager;
-
 use crate::{
     cli::core::{
         base_command::InitConfiguration, config_command::CONFIG_COMMAND,
         edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
         list_command::LIST_COMMAND, new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
     },
+    errors::cli::CliError,
     runner::{context::ExecutionContext, coordinator::Coordinator},
     utils::{checks::catch_help_and_version_commands, fs::*, yaml::parse_command_file},
 };
@@ -31,7 +24,19 @@ use std::{
 static PROJECT_DIR: &str = ".mici";
 static EXECUTABLE: OnceLock<String> = OnceLock::new();
 
-fn main() {
+fn main() -> miette::Result<()> {
+    run()
+}
+
+fn run() -> miette::Result<()> {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::from_default_env()
+                .add_directive("mici=info".parse().unwrap()),
+        )
+        .without_time()
+        .init();
+
     let args: Vec<String> = env::args().collect();
 
     // Set which executable is called the command
@@ -43,27 +48,45 @@ fn main() {
     EXECUTABLE.set(executable).unwrap();
 
     // Read existing configuration file
-    let config_exist = Path::new(&get_config_file()).exists();
-    if config_exist {
-        let config_yaml_str = fs::read_to_string(&get_config_file()).unwrap();
-        let config: InitConfiguration = serde_yaml::from_str(&config_yaml_str).unwrap();
+    let config_file = get_config_file();
+    if config_file.exists() {
+        match fs::read_to_string(&config_file) {
+            Ok(config_yaml_str) => {
+                match serde_yaml::from_str::<InitConfiguration>(&config_yaml_str) {
+                    Ok(config) => {
+                        // Control terminal colors
+                        match config.disable_cli_color {
+                            Some(true) => {
+                                colored::control::set_override(false);
+                            }
+                            _ => {
+                                colored::control::set_override(true);
+                            }
+                        }
 
-        // Control terminal colors
-        match config.disable_cli_color {
-            Some(true) => {
-                colored::control::set_override(false);
+                        // Control pager
+                        if let Some(true) = config.disable_pager {
+                            unsafe {
+                                std::env::set_var("NOPAGER", "1");
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!(
+                            "{} Warning: Failed to parse config file: {}",
+                            ">".bright_black(),
+                            e
+                        );
+                    }
+                }
             }
-            _ => {
-                colored::control::set_override(true);
+            Err(e) => {
+                eprintln!(
+                    "{} Warning: Failed to read config file: {}",
+                    ">".bright_black(),
+                    e
+                );
             }
-        }
-
-        // Control pager
-        match config.disable_pager {
-            Some(true) => unsafe {
-                std::env::set_var("NOPAGER", "1");
-            },
-            _ => {}
         }
     }
 
@@ -74,241 +97,34 @@ fn main() {
     match &args.get(1).map(String::as_ref) {
         Some("init") => {
             opts.optflag("", "clean", "");
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(_) => {
-                    println!(
-                        "> {}\n",
-                        "Couldn't recognize the given command. Try running with --help".on_red()
-                    );
-                    return;
-                }
-            };
+            let matches = parse_opts(&opts, &args[1..])?;
 
-            match INIT_COMMAND.run(matches.opt_present("clean")) {
-                Ok(()) | Err(_) => return,
-            };
+            INIT_COMMAND
+                .run(matches.opt_present("clean"))
+                .map_err(CliError::from)?;
         }
         Some("fetch") => {
             opts.optopt("b", "branch", "", "");
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
+            let matches = parse_opts(&opts, &args[1..])?;
 
-            match FETCH_COMMAND.run(matches.opt_str("b")) {
-                Ok(()) | Err(_) => return,
-            };
+            FETCH_COMMAND
+                .run(matches.opt_str("b"))
+                .map_err(CliError::from)?;
         }
-        Some("new") => {
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-
-            let command_args = matches.free[1..].to_vec();
-
-            match NEW_COMMAND.run(command_args) {
-                Ok(()) => return,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-        }
-        Some("edit") => {
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-            let command_args = matches.free[1..].to_vec();
-
-            match EDIT_COMMAND.run(command_args) {
-                Ok(()) => return,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-        }
-        Some("validate") => {
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-            let command_args = matches.free[1..].to_vec();
-
-            match VALIDATE_COMMAND.run(command_args) {
-                Ok(()) => return,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-        }
-        Some("list") => {
-            let matches = match opts.parse(&args[1..]) {
-                Ok(m) => m,
-                Err(err) => {
-                    println!("> {}\n", err);
-                    return;
-                }
-            };
-
-            let command_args = matches.free[1..].to_vec();
-            match LIST_COMMAND.run(command_args) {
-                Ok(()) | Err(_) => return,
-            };
-        }
+        Some("new") => run_args_command(&opts, &args, |a| NEW_COMMAND.run(a))?,
+        Some("edit") => run_args_command(&opts, &args, |a| EDIT_COMMAND.run(a))?,
+        Some("validate") => run_args_command(&opts, &args, |a| VALIDATE_COMMAND.run(a))?,
+        Some("list") => run_args_command(&opts, &args, |a| LIST_COMMAND.run(a))?,
         Some("config") => {
-            match CONFIG_COMMAND.run() {
-                Ok(()) | Err(_) => return,
-            };
+            CONFIG_COMMAND.run().map_err(CliError::from)?;
         }
         Some(_) => {
-            let command_args = &args[1..];
-            let options_start = command_args.iter().position(|arg| arg.starts_with("-"));
-
-            let (command_parts, option_args) = match options_start {
-                Some(p) => (&command_args[..p], &command_args[p..]),
-                None => (command_args, &[] as &[String]),
-            };
-
-            let (command_file_path, command_file) =
-                &get_command_file(command_parts.join(path::MAIN_SEPARATOR_STR));
-
-            if command_file.is_none() {
-                printdoc! {"
-                    {} Can't run command.
-
-                      Command doesn't exists at given path {}.
-                      Check the exact usage with {} {}
-                ",
-                    ">".bright_black(),
-                    &command_file_path.underline().bold(),
-                    EXECUTABLE.get().unwrap().bright_yellow().bold(),
-                    "edit --help".bright_yellow().bold(),
-                };
-
-                return;
-            }
-
-            match parse_command_file(command_file_path) {
-                Ok(cmd) => {
-                    if let Some(inputs) = &cmd.inputs {
-                        for (name, input) in inputs {
-                            let strip_dashes = |s: &str| s.trim_start_matches('-').to_string();
-
-                            match input.r#type.as_str() {
-                                "boolean" | "bool" => {
-                                    // Use optflag for boolean inputs
-                                    match (&input.short, &input.long) {
-                                        (Some(short), Some(long)) => {
-                                            opts.optflag(
-                                                &strip_dashes(short),
-                                                &strip_dashes(long),
-                                                &input.description,
-                                            );
-                                        }
-                                        (Some(short), None) => {
-                                            opts.optflag(
-                                                &strip_dashes(short),
-                                                name,
-                                                &input.description,
-                                            );
-                                        }
-                                        (None, Some(long)) => {
-                                            opts.optflag(
-                                                "",
-                                                &strip_dashes(long),
-                                                &input.description,
-                                            );
-                                        }
-                                        (None, None) => {
-                                            opts.optflag("", name, &input.description);
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    // Use optopt for string, choice, etc.
-                                    match (&input.short, &input.long) {
-                                        (Some(short), Some(long)) => {
-                                            opts.optopt(
-                                                &strip_dashes(short),
-                                                &strip_dashes(long),
-                                                &input.description,
-                                                "",
-                                            );
-                                        }
-                                        (Some(short), None) => {
-                                            opts.optopt(
-                                                &strip_dashes(short),
-                                                name,
-                                                &input.description,
-                                                "",
-                                            );
-                                        }
-                                        (None, Some(long)) => {
-                                            opts.optopt(
-                                                "",
-                                                &strip_dashes(long),
-                                                &input.description,
-                                                "",
-                                            );
-                                        }
-                                        (None, None) => {
-                                            opts.optopt("", name, &input.description, "");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    let matches: getopts::Matches = match opts.parse(option_args) {
-                        Ok(m) => m,
-                        Err(err) => {
-                            println!("> {}\n", err);
-                            return;
-                        }
-                    };
-
-                    let context = ExecutionContext::new(&cmd, &matches);
-                    let coordinator = Coordinator::with_context(context);
-
-                    match coordinator.run() {
-                        Ok(()) => {}
-                        Err(err) => {
-                            println!("Execution failed: {}", err);
-                        }
-                    }
-                }
-                Err(err) => {
-                    let report = miette::Report::new(err);
-                    eprintln!("{:?}", report);
-                    std::process::exit(1);
-                }
-            }
+            run_dynamic_command(&args, &mut opts)?;
         }
         None => {
-            // Check if ~/.mici/config.yml exists
-            // If not, print first time help
-            // Otherwise, print shorter version
-            let mici_exist = Path::new(&get_project_folder()).exists();
+            let project_folder = get_project_folder();
 
-            if mici_exist {
+            if project_folder.exists() {
                 printdoc! {"
                     {} This is {}!
                       Found an existing configuration at {}
@@ -316,7 +132,7 @@ fn main() {
                 ",
                     ">".bright_black(),
                     EXECUTABLE.get().unwrap().underline().bold(),
-                    &get_project_folder().underline().bold(),
+                    project_folder.display().to_string().underline().bold(),
                     EXECUTABLE.get().unwrap().bright_yellow().bold(),
                     "--help".bright_yellow().bold(),
                 };
@@ -329,11 +145,102 @@ fn main() {
                 ",
                     ">".bright_black(),
                     EXECUTABLE.get().unwrap().underline().bold(),
-                    &get_project_folder().underline().bold(),
+                    project_folder.display().to_string().underline().bold(),
                     EXECUTABLE.get().unwrap().bright_yellow().bold(),
                     "init".bright_yellow().bold(),
                 };
             }
         }
     }
+
+    Ok(())
+}
+
+/// Parse args with the given options, returning CliError on failure.
+fn parse_opts(opts: &Options, args: &[String]) -> miette::Result<getopts::Matches> {
+    opts.parse(args)
+        .map_err(|err| CliError::ArgParse(err.to_string()).into())
+}
+
+/// Run a core command that takes Vec<String> args.
+fn run_args_command(
+    opts: &Options,
+    args: &[String],
+    run: impl FnOnce(Vec<String>) -> Result<(), Box<dyn std::error::Error>>,
+) -> miette::Result<()> {
+    let matches = parse_opts(opts, &args[1..])?;
+    let command_args = matches.free[1..].to_vec();
+    run(command_args).map_err(CliError::from)?;
+    Ok(())
+}
+
+fn run_dynamic_command(args: &[String], opts: &mut Options) -> miette::Result<()> {
+    let command_args = &args[1..];
+    let options_start = command_args.iter().position(|arg| arg.starts_with("-"));
+
+    let (command_parts, option_args) = match options_start {
+        Some(p) => (&command_args[..p], &command_args[p..]),
+        None => (command_args, &[] as &[String]),
+    };
+
+    let (command_file_path, command_file) =
+        match get_command_file(command_parts.join(path::MAIN_SEPARATOR_STR)) {
+            Ok(result) => result,
+            Err(err) => {
+                return Err(CliError::General {
+                    message: err.to_string(),
+                }
+                .into());
+            }
+        };
+
+    if command_file.is_none() {
+        let display_path = command_file_path.display();
+        printdoc! {"
+            {} Can't run command.
+
+              Command doesn't exists at given path {}.
+              Check the exact usage with {} {}
+        ",
+            ">".bright_black(),
+            display_path.to_string().underline().bold(),
+            EXECUTABLE.get().unwrap().bright_yellow().bold(),
+            "edit --help".bright_yellow().bold(),
+        };
+
+        return Ok(());
+    }
+
+    let cmd = parse_command_file(&command_file_path)?;
+
+    if let Some(inputs) = &cmd.inputs {
+        for (name, input) in inputs {
+            let strip_dashes = |s: &str| s.trim_start_matches('-').to_string();
+
+            let short = input.short.as_deref().map(strip_dashes).unwrap_or_default();
+            let long = input
+                .long
+                .as_deref()
+                .map(strip_dashes)
+                .unwrap_or_else(|| name.to_string());
+
+            match input.r#type.as_str() {
+                "boolean" | "bool" => {
+                    opts.optflag(&short, &long, &input.description);
+                }
+                _ => {
+                    opts.optopt(&short, &long, &input.description, "");
+                }
+            }
+        }
+    }
+
+    let matches = parse_opts(opts, option_args)?;
+
+    let context = ExecutionContext::new(&cmd, &matches);
+    let coordinator = Coordinator::with_context(context);
+
+    coordinator.run().map_err(CliError::from)?;
+
+    Ok(())
 }

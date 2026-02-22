@@ -38,25 +38,26 @@ impl SchemaValidator {
     }
 
     fn validate_version(&mut self, version: &str) {
-        if version != "1" && version != "1.0" {
-            if let Some(span) = self.find_field_span("version") {
-                self.errors.push(ValidationError::VersionInvalid {
-                    src: self.source.clone(),
-                    found: version.to_string(),
-                    span,
-                });
-            }
+        if version != "1"
+            && version != "1.0"
+            && let Some(span) = self.find_field_span("version")
+        {
+            self.errors.push(ValidationError::VersionInvalid {
+                src: self.source.clone(),
+                found: version.to_string(),
+                span,
+            });
         }
     }
 
     fn validate_name(&mut self, name: &str) {
-        if name.trim().is_empty() {
-            if let Some(span) = self.find_field_span("name") {
-                self.errors.push(ValidationError::NameEmpty {
-                    src: self.source.clone(),
-                    span,
-                });
-            }
+        if name.trim().is_empty()
+            && let Some(span) = self.find_field_span("name")
+        {
+            self.errors.push(ValidationError::NameEmpty {
+                src: self.source.clone(),
+                span,
+            });
         }
     }
 
@@ -82,20 +83,20 @@ impl SchemaValidator {
                     span,
                 });
             }
-        } else if !valid_types.contains(&input_type) {
-            if let Some(span) = self.find_nested_field_span(&["inputs", input_name, "type"]) {
-                self.errors.push(ValidationError::InputTypeInvalid {
-                    src: self.source.clone(),
-                    input_name: input_name.to_string(),
-                    found: input_type.to_string(),
-                    span,
-                });
-            }
+        } else if !valid_types.contains(&input_type)
+            && let Some(span) = self.find_nested_field_span(&["inputs", input_name, "type"])
+        {
+            self.errors.push(ValidationError::InputTypeInvalid {
+                src: self.source.clone(),
+                input_name: input_name.to_string(),
+                found: input_type.to_string(),
+                span,
+            });
         }
     }
 
-    fn validate_input_secret(&mut self, input_name: &str, input_type: &str, secret: Option<bool>) {
-        if secret == Some(true) && input_type != "string" {
+    fn validate_input_secret(&mut self, input_name: &str, input_type: &str, secret: bool) {
+        if secret && input_type != "string" {
             let secret_span = self.find_nested_field_span(&["inputs", input_name, "secret"]);
             let type_span = self.find_nested_field_span(&["inputs", input_name, "type"]);
 
@@ -165,14 +166,14 @@ impl SchemaValidator {
                         span,
                     });
                 }
-            } else if step.id.contains(char::is_whitespace) {
-                if let Some(span) = self.find_step_field_span(index, "id") {
-                    self.errors.push(ValidationError::StepIdWhitespace {
-                        src: self.source.clone(),
-                        step_id: step.id.clone(),
-                        span,
-                    });
-                }
+            } else if step.id.contains(char::is_whitespace)
+                && let Some(span) = self.find_step_field_span(index, "id")
+            {
+                self.errors.push(ValidationError::StepIdWhitespace {
+                    src: self.source.clone(),
+                    step_id: step.id.clone(),
+                    span,
+                });
             }
 
             if !seen_ids.insert(&step.id) {
@@ -303,25 +304,26 @@ impl SchemaValidator {
             } else {
                 let indent = line.len() - trimmed.len();
                 if trimmed.is_empty() || trimmed.starts_with('#') {
-                } else if let Some(si) = steps_indent {
-                    if indent <= si.saturating_sub(0) && !trimmed.starts_with('-') {
-                        break;
-                    }
+                } else if let Some(si) = steps_indent
+                    && indent <= si
+                    && !trimmed.starts_with('-')
+                {
+                    break;
                 }
 
                 if trimmed.starts_with('-') {
                     let indent = line.len() - trimmed.len();
-                    if let Some(si) = steps_indent {
-                        if indent >= si {
-                            if current_step == step_index {
-                                target_start_line = Some(i);
-                            } else if target_start_line.is_some() && target_end_line.is_none() {
-                                target_end_line = Some(i - 1);
-                                break;
-                            }
-
-                            current_step += 1;
+                    if let Some(si) = steps_indent
+                        && indent >= si
+                    {
+                        if current_step == step_index {
+                            target_start_line = Some(i);
+                        } else if target_start_line.is_some() && target_end_line.is_none() {
+                            target_end_line = Some(i - 1);
+                            break;
                         }
+
+                        current_step += 1;
                     }
                 }
             }

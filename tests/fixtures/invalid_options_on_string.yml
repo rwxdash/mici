@@ -1,0 +1,23 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::options_only_for_choice  (options set on a "string" type input)
+# @note: The "options" field is only valid for type "choice"
+
+version: "1.0"
+name: "options-on-string"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: string
+    description: "A string with options — that's not allowed"
+    options:
+      - foo
+      - bar
+
+steps:
+  - id: "noop"
+    run:
+      command: "echo noop"

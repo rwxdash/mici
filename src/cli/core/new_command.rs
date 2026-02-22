@@ -1,20 +1,21 @@
 use crate::EXECUTABLE;
 use crate::cli::core::base_command::BaseCommand;
-use crate::cli::schemas::v1::{
-    CommandSchema, CommandSchemaConfiguration, CommandSchemaStep, CommandSchemaStepRun,
-    CommandSchemaStepRunExecution,
-};
 use crate::utils::fs::{create_folder_at, get_commands_folder, get_project_folder};
 use colored::Colorize;
 use dialoguer::{Input, theme::ColorfulTheme};
 use indoc::printdoc;
 use std::error::Error;
-use std::path::Path;
 use std::{fs, path};
 
 #[allow(dead_code)]
 pub struct NewCommand {
     pub base: BaseCommand,
+}
+
+impl Default for NewCommand {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl NewCommand {
@@ -40,8 +41,8 @@ impl NewCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let mici_exist = Path::new(&get_project_folder()).exists();
-        if !mici_exist {
+        let project_folder = get_project_folder();
+        if !project_folder.exists() {
             printdoc! {"
                     {} Can't create a new command.
 
@@ -49,18 +50,17 @@ impl NewCommand {
                       Try running {} {}
                 ",
                 ">".bright_black(),
-                &get_project_folder().underline().bold(),
+                project_folder.display().to_string().underline().bold(),
                 EXECUTABLE.get().unwrap(),
                 "init".bright_yellow().bold(),
             };
             return Ok(());
         }
 
-        let commands_folder_exist = Path::new(&get_commands_folder()).exists();
-        if !commands_folder_exist {
-            create_folder_at(&get_commands_folder());
-        }
         let commands_folder = get_commands_folder();
+        if !commands_folder.exists() {
+            create_folder_at(&commands_folder)?;
+        }
 
         let command_path = if command_args.is_empty() {
             println!("{} Let's create a new command!", ">".bright_black());
@@ -78,12 +78,12 @@ impl NewCommand {
             normalized_path
         };
 
-        let file_path = Path::new(&commands_folder).join(format!("{}.yml", &command_path));
+        let file_path = commands_folder.join(format!("{}.yml", &command_path));
 
         if file_path.exists() {
             return Err(format!(
                 "Command already exists at {}\nUse a different path or remove the existing command first.",
-                file_path.to_string_lossy()
+                file_path.display()
             ).into());
         }
 
@@ -254,39 +254,8 @@ steps:
         #[cfg(windows)]
         let default_shell: &'static str = "powershell";
 
-        let schema: CommandSchema = CommandSchema {
-            version: "1.0".to_string(),
-            name: command_path.replace(path::MAIN_SEPARATOR_STR, " "),
-            inputs: None,
-            description: Some("A new mici command".to_string()),
-            usage: Some(format!(
-                "mici {}",
-                command_path.replace(path::MAIN_SEPARATOR_STR, " ")
-            )),
-            configuration: CommandSchemaConfiguration {
-                confirm: Some(false),
-                environment: None,
-                working_directory: None,
-            },
-            steps: vec![CommandSchemaStep {
-                id: "say_hello".to_string(),
-                name: Some("Say hello on terminal".to_string()),
-                when: None,
-                run: CommandSchemaStepRun {
-                    shell: Some(default_shell.to_string()),
-                    args: None,
-                    environment: None,
-                    working_directory: None,
-                    execution: CommandSchemaStepRunExecution::Command {
-                        command: r#"
-echo "Hello, @{inputs.name}!"
-"#
-                        .trim()
-                        .to_string(),
-                    },
-                },
-            }],
-        };
+        let name = command_path.replace(path::MAIN_SEPARATOR_STR, " ");
+        let usage = format!("mici {}", &name);
 
         if let Some(parent) = file_path.parent() {
             fs::create_dir_all(parent)?;
@@ -294,21 +263,15 @@ echo "Hello, @{inputs.name}!"
 
         let yaml_content = TEMPLATE
             .trim_start()
-            .replace("{version}", &schema.version)
-            .replace("{name}", &schema.name)
-            .replace("{description}", &schema.description.unwrap())
-            .replace("{usage}", &schema.usage.unwrap())
-            .replace(
-                "{confirm}",
-                &schema.configuration.confirm.unwrap_or_default().to_string(),
-            )
-            .replace("{step_id}", &schema.steps[0].id)
-            .replace("{step_name}", &schema.steps[0].name.as_ref().unwrap())
-            .replace("{shell}", &schema.steps[0].run.shell.as_ref().unwrap())
-            .replace(
-                "{command}",
-                &schema.steps[0].run.execution.get_command().unwrap(),
-            );
+            .replace("{version}", "1.0")
+            .replace("{name}", &name)
+            .replace("{description}", "A new mici command")
+            .replace("{usage}", &usage)
+            .replace("{confirm}", "false")
+            .replace("{step_id}", "say_hello")
+            .replace("{step_name}", "Say hello on terminal")
+            .replace("{shell}", default_shell)
+            .replace("{command}", r#"echo "Hello, @{inputs.name}!""#);
         fs::write(&file_path, yaml_content)?;
 
         printdoc! {"
@@ -317,7 +280,7 @@ echo "Hello, @{inputs.name}!"
                   Run {} {} to use it
             ",
             ">".bright_green(),
-            file_path.to_string_lossy().bright_cyan().bold(),
+            file_path.display().to_string().bright_cyan().bold(),
             EXECUTABLE.get().unwrap().bright_yellow().bold(),
             &command_path.replace(path::MAIN_SEPARATOR_STR, " ").bright_yellow().bold(),
         };

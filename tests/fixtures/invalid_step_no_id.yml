@@ -1,0 +1,14 @@
+# @test: validate should FAIL
+# @expect-errors:
+#   - mici::schema::step_id_empty  (step id is an empty string)
+
+version: "1.0"
+name: "step-no-id"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: ""
+    run:
+      command: "echo missing id"

@@ -186,9 +186,9 @@ There are some major stories to complete before I call this project version 1.0.
 
 **Code of conduct** is simple. Be nice and thoughtful. That's all.
 
-About the **Contributions**, the project is obviously open to contributions. However, since it's quite early and I'm still shaping what this tool can be, no major refactor or feature PRs, please.
+The project is **not open to contributions** at this time. It's still early and I'm actively shaping what this tool should be.
 
-I'd very much appreciate if you open an issue beforehand if you plan to contribute any change.
+In the meantime, feel free to open an issue if you find a bug or have a suggestion.
 
 ## License
 

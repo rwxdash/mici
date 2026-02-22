@@ -9,6 +9,12 @@ pub struct ConfigCommand {
     pub base: BaseCommand,
 }
 
+impl Default for ConfigCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConfigCommand {
     pub const fn new() -> Self {
         Self {
@@ -42,12 +48,7 @@ impl ConfigCommand {
                 }
             });
 
-        // Execute the editor command
-        let mut c = Command::new(&editor);
-        c.arg(&config_file);
-        let mut cmd = c;
-
-        let status = cmd.status()?;
+        let status = Command::new(&editor).arg(&config_file).status()?;
 
         if !status.success() {
             return Err(format!("Failed to open config file with editor '{}'", editor).into());

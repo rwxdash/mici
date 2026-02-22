@@ -1,0 +1,15 @@
+# @test: validate should PASS
+# @run:  mici minimal
+# @expect-stdout: ok
+# @note: Bare minimum valid schema — no inputs, no description, no environment
+
+version: "1.0"
+name: "minimal"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "echo"
+    run:
+      command: "echo ok"

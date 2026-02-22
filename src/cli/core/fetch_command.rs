@@ -1,5 +1,3 @@
-extern crate colored;
-
 use crate::cli::core::base_command::BaseCommand;
 use crate::cli::core::base_command::InitConfiguration;
 use crate::utils::fs::{
@@ -9,11 +7,15 @@ use crate::utils::fs::{
 use git2::{Cred, CredentialType, RemoteCallbacks};
 use std::error::Error;
 use std::fs;
-use std::path::Path;
-use std::process;
 
 pub struct FetchCommand {
     pub base: BaseCommand,
+}
+
+impl Default for FetchCommand {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl FetchCommand {
@@ -43,30 +45,24 @@ impl FetchCommand {
         // TODO: Warn that this cant be undone!
         // TODO: Better logging
 
-        let mici_exist = Path::new(&get_project_folder()).exists();
-        if !mici_exist {
-            // TODO: print err and exit
-            println!("> Exiting...");
-            process::exit(1)
+        let project_folder = get_project_folder();
+        if !project_folder.exists() {
+            return Err("mici is not initialized. Run 'mici init' first.".into());
         }
 
-        let config_exist = Path::new(&get_config_file()).exists();
-        if !config_exist {
-            // TODO: print err and exit
-            println!("> Exiting...");
-            process::exit(1)
+        let config_file = get_config_file();
+        if !config_file.exists() {
+            return Err("Configuration file not found. Run 'mici init' first.".into());
         }
 
-        let config_file = std::fs::read_to_string(Path::new(&get_config_file())).unwrap();
-        let init_configuration: InitConfiguration = serde_yaml::from_str(&config_file).unwrap();
+        let config_content = std::fs::read_to_string(&config_file)?;
+        let init_configuration: InitConfiguration = serde_yaml::from_str(&config_content)?;
 
-        if init_configuration.upstream_url.is_none() {
-            // TODO: print err and exit
-            println!("> Exiting...");
-            process::exit(1)
-        }
+        let upstream_url = init_configuration
+            .upstream_url
+            .ok_or("No upstream URL configured. Run 'mici init' to set one.")?;
 
-        let tmp_folder = create_tmp_folder();
+        let tmp_folder = create_tmp_folder()?;
 
         let mut callbacks = RemoteCallbacks::new();
         callbacks.credentials(|_url, username_from_url, allowed_types| {
@@ -97,35 +93,36 @@ impl FetchCommand {
 
         builder.fetch_options(fetch_options);
 
-        if branch.is_some() {
-            builder.branch(&branch.unwrap());
+        if let Some(ref b) = branch {
+            builder.branch(b);
         }
+
+        tracing::info!("Cloning from {}", &upstream_url);
 
         builder
-            .clone(
-                &init_configuration.upstream_url.unwrap().as_str(),
-                Path::new(&tmp_folder),
-            )
-            .expect("Failed to clone the repository");
+            .clone(&upstream_url, &tmp_folder)
+            .map_err(|e| format!("Failed to clone the repository: {}", e))?;
 
-        clear_jobs_folder().expect("Failed to clear the jobs directory");
+        clear_jobs_folder().map_err(|e| format!("Failed to clear the jobs directory: {}", e))?;
 
-        copy_directory(
-            Path::new(&tmp_folder)
-                .join(init_configuration.upstream_cmd_path.unwrap())
-                .to_str()
-                .unwrap(),
-            &get_jobs_folder(),
-        )
-        .expect("Failed to copy upstream to the jobs directory");
+        let upstream_cmd_path = init_configuration
+            .upstream_cmd_path
+            .ok_or("No upstream command path configured.")?;
 
-        let git_dir = Path::new(&get_jobs_folder()).join(".git");
+        copy_directory(&tmp_folder.join(&upstream_cmd_path), &get_jobs_folder())
+            .map_err(|e| format!("Failed to copy upstream to the jobs directory: {}", e))?;
+
+        let git_dir = get_jobs_folder().join(".git");
         if git_dir.exists() {
-            fs::remove_dir_all(&git_dir).expect("Failed to remove .git directory");
+            fs::remove_dir_all(&git_dir)
+                .map_err(|e| format!("Failed to remove .git directory: {}", e))?;
         }
-        fs::remove_dir_all(&tmp_folder).expect("Failed to remove temporary folder");
+        fs::remove_dir_all(&tmp_folder)
+            .map_err(|e| format!("Failed to remove temporary folder: {}", e))?;
 
-        return Ok(());
+        tracing::info!("Fetch complete");
+
+        Ok(())
     }
 }
 

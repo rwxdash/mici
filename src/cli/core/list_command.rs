@@ -17,6 +17,12 @@ pub struct ListCommand {
     pub base: BaseCommand,
 }
 
+impl Default for ListCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ListCommand {
     pub const fn new() -> Self {
         ListCommand {
@@ -96,19 +102,18 @@ impl ListCommand {
         path_filter: Option<&str>,
     ) -> Result<Vec<String>, Box<dyn Error>> {
         let commands_folder = get_commands_folder();
-        let base_path = Path::new(&commands_folder);
 
-        if path_filter.is_none() {
-            // List all commands
-            self.collect_commands(base_path, ".")
-        } else {
+        if let Some(filter) = path_filter {
             // List commands from specific subdirectory
-            let filter_path = base_path.join(path_filter.unwrap());
-            self.collect_commands(&filter_path, path_filter.unwrap())
+            let filter_path = commands_folder.join(filter);
+            self.collect_commands(&filter_path, filter)
+        } else {
+            // List all commands
+            self.collect_commands(&commands_folder, ".")
         }
     }
 
-    fn display_commands(&self, commands: &Vec<String>, path_filter: Option<&str>) {
+    fn display_commands(&self, commands: &[String], path_filter: Option<&str>) {
         if commands.is_empty() {
             if let Some(filter) = path_filter {
                 println!(
@@ -123,14 +128,10 @@ impl ListCommand {
             return;
         }
 
+        let commands_folder = get_commands_folder();
         let header_path = match path_filter {
-            Some(_) => {
-                let binding = Path::new(&get_commands_folder()).join(path_filter.unwrap());
-                binding.to_string_lossy().to_string()
-            }
-            None => Path::new(&get_commands_folder())
-                .to_string_lossy()
-                .to_string(),
+            Some(filter) => commands_folder.join(filter).display().to_string(),
+            None => commands_folder.display().to_string(),
         };
 
         printdoc! {"
@@ -143,7 +144,7 @@ impl ListCommand {
 
         println!();
 
-        let mut sorted_commands = commands.clone();
+        let mut sorted_commands = commands.to_vec();
 
         // Sorting logic:
         // 1. Split commands into two groups: depth = 0 vs depth > 0
@@ -175,13 +176,13 @@ impl ListCommand {
                 String::new()
             };
 
-            if let Some(previous_prefix) = current_prefix {
-                if command_prefix != previous_prefix {
-                    println!(
-                        "  {}",
-                        "-".repeat(EXECUTABLE.get().unwrap().len()).bright_black()
-                    );
-                }
+            if let Some(previous_prefix) = current_prefix
+                && command_prefix != previous_prefix
+            {
+                println!(
+                    "  {}",
+                    "-".repeat(EXECUTABLE.get().unwrap().len()).bright_black()
+                );
             }
 
             current_prefix = Some(command_prefix);
@@ -196,10 +197,10 @@ impl ListCommand {
     }
 
     pub fn run(&self, command_args: Vec<String>) -> Result<(), Box<dyn Error>> {
-        let mici_exist = Path::new(&get_project_folder()).exists();
-        let commands_folder_exist = Path::new(&get_commands_folder()).exists();
+        let project_folder = get_project_folder();
+        let commands_folder = get_commands_folder();
 
-        if !mici_exist {
+        if !project_folder.exists() {
             printdoc! {"
                     {} Can't list commands.
 
@@ -207,15 +208,15 @@ impl ListCommand {
                       Try running {} {}
                 ",
                 ">".bright_black(),
-                &get_project_folder().underline().bold(),
+                project_folder.display().to_string().underline().bold(),
                 EXECUTABLE.get().unwrap(),
                 "init".bright_yellow().bold(),
             };
             return Ok(());
         }
 
-        if !commands_folder_exist {
-            create_folder_at(&get_commands_folder());
+        if !commands_folder.exists() {
+            create_folder_at(&commands_folder)?;
         }
 
         if command_args.is_empty() {
