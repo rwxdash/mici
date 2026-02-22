@@ -6,7 +6,7 @@ edition = "2024"
 license = "Apache-2.0"
 description = "Lightweight CLI framework based on filesystem hierarchy"
 authors = ["Oguzhan Ozdemir"]
-exclude = [".*", "rfc/"]
+exclude = [".*", "rfc/", "tests/"]
 categories = [
     "command-line-utilities",
     "command-line-interface",

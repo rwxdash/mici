@@ -162,18 +162,18 @@ There are some major stories to complete before I call this project version 1.0.
 - [x] Basic validation for commands
 - [x] Handle errors with miette
 - [x] Implement tracing
+- [x] Runtime input validation
+    + [x] Reject invalid values for `choice` inputs
+    + [x] Enforce `required` inputs — error when not provided and no default
+- [x] Secret masking for `secret: true` inputs in logs/output
+- [x] Config validation — reject unknown/misspelled keys in `config.yml`
+- [x] Better `fetch` UX — confirmation prompt and/or backup before nuking local commands
 
 #### Up next
 
-- [ ] Runtime input validation
-    + [ ] Reject invalid values for `choice` inputs
-    + [ ] Enforce `required` inputs — error when not provided and no default
 - [ ] Implement `script: "scripts/..."` usage for steps
 - [ ] Step output capture (stdout/stderr per step)
     + Prerequisite for `@{steps.<STEP_ID>.output}` in expressions
-- [ ] Secret masking for `secret: true` inputs in logs/output
-- [ ] Config validation — reject unknown/misspelled keys in `config.yml`
-- [ ] Better `fetch` UX — confirmation prompt and/or backup before nuking local commands
 
 #### Later
 
