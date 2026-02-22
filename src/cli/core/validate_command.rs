@@ -19,6 +19,12 @@ pub struct ValidateCommand {
     pub base: BaseCommand,
 }
 
+impl Default for ValidateCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ValidateCommand {
     pub const fn new() -> Self {
         ValidateCommand {
@@ -86,10 +92,7 @@ impl ValidateCommand {
             return Ok(());
         } else {
             let (command_file_path, command_file) =
-                match get_command_file(command_args.join(path::MAIN_SEPARATOR_STR)) {
-                    Ok(result) => result,
-                    Err(err) => return Err(err.into()),
-                };
+                get_command_file(command_args.join(path::MAIN_SEPARATOR_STR))?;
 
             if command_file.is_none() {
                 let display_path = command_file_path.display();

@@ -118,9 +118,9 @@ impl ExportAsHashMap for CommandSchema {
         content.insert("name", self.name.trim());
         content.insert(
             "description",
-            self.description.as_ref().map_or("", |v| v).trim(),
+            self.description.as_deref().unwrap_or("").trim(),
         );
-        content.insert("usage", self.usage.as_ref().map_or("", |v| v).trim());
+        content.insert("usage", self.usage.as_deref().unwrap_or("").trim());
 
         content
     }

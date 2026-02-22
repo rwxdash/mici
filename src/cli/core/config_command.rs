@@ -9,6 +9,12 @@ pub struct ConfigCommand {
     pub base: BaseCommand,
 }
 
+impl Default for ConfigCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ConfigCommand {
     pub const fn new() -> Self {
         Self {

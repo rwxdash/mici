@@ -65,11 +65,10 @@ fn run() -> miette::Result<()> {
                         }
 
                         // Control pager
-                        match config.disable_pager {
-                            Some(true) => unsafe {
+                        if let Some(true) = config.disable_pager {
+                            unsafe {
                                 std::env::set_var("NOPAGER", "1");
-                            },
-                            _ => {}
+                            }
                         }
                     }
                     Err(e) => {

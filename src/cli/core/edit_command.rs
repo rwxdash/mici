@@ -13,6 +13,12 @@ pub struct EditCommand {
     pub base: BaseCommand,
 }
 
+impl Default for EditCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EditCommand {
     pub const fn new() -> Self {
         EditCommand {
@@ -81,10 +87,7 @@ impl EditCommand {
             return Ok(());
         } else {
             let (command_file_path, command_file) =
-                match get_command_file(command_args.join(path::MAIN_SEPARATOR_STR)) {
-                    Ok(result) => result,
-                    Err(err) => return Err(err.into()),
-                };
+                get_command_file(command_args.join(path::MAIN_SEPARATOR_STR))?;
 
             if command_file.is_none() {
                 let display_path = command_file_path.display();

@@ -144,16 +144,16 @@ pub fn print_general_help() {
     println!("{}", handlebars.render("general_help", &data).unwrap());
 }
 
-pub fn print_individual_help(command: &String) {
+pub fn print_individual_help(command: &str) {
     let handlebars = get_handlebars();
 
     // Handle core commands
-    if CORE_COMMANDS.contains(&command.as_str()) {
-        if let Some(data) = core_command_help_data(command) {
-            pager();
-            println!("{}", handlebars.render("individual_help", &data).unwrap(),);
-            return;
-        }
+    if CORE_COMMANDS.contains(&command)
+        && let Some(data) = core_command_help_data(command)
+    {
+        pager();
+        println!("{}", handlebars.render("individual_help", &data).unwrap(),);
+        return;
     }
 
     // Handle dynamic (user-defined) commands
@@ -247,8 +247,8 @@ pub fn print_individual_help(command: &String) {
                         &command.replace(path::MAIN_SEPARATOR_STR, " "),
                     );
                 }
-                cmd_map.insert("synopsis", &synopsis.trim());
-                cmd_map.insert("options", &options.trim());
+                cmd_map.insert("synopsis", synopsis.trim());
+                cmd_map.insert("options", options.trim());
 
                 pager();
                 println!("{}", handlebars.render("individual_help", cmd_map).unwrap());

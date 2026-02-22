@@ -12,6 +12,12 @@ pub struct NewCommand {
     pub base: BaseCommand,
 }
 
+impl Default for NewCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NewCommand {
     pub const fn new() -> Self {
         NewCommand {

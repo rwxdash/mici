@@ -114,7 +114,7 @@ impl<'a> Coordinator<'a> {
                 };
 
                 let resolved_command =
-                    resolve_input_variables(command, inputs, &self.context.matches);
+                    resolve_input_variables(command, inputs, self.context.matches);
 
                 c.arg(flag).arg(&resolved_command);
                 c
@@ -141,7 +141,7 @@ impl<'a> Coordinator<'a> {
             let resolved_env = resolve_environment_variables(
                 command_environment_variables,
                 inputs,
-                &self.context.matches,
+                self.context.matches,
             );
 
             for (key, value) in resolved_env {
@@ -153,7 +153,7 @@ impl<'a> Coordinator<'a> {
             let resolved_env = resolve_environment_variables(
                 step_environment_variables,
                 inputs,
-                &self.context.matches,
+                self.context.matches,
             );
 
             for (key, value) in resolved_env {

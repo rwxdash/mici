@@ -23,6 +23,12 @@ pub struct InitCommand {
     pub base: BaseCommand,
 }
 
+impl Default for InitCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InitCommand {
     pub const fn new() -> Self {
         Self {
@@ -96,32 +102,30 @@ impl InitCommand {
             ))
             .interact()?;
 
-        let init_configuration: InitConfiguration;
-
-        if set_upstream == 1 {
+        let init_configuration: InitConfiguration = if set_upstream == 1 {
             let upstream_url: String = Input::with_theme(&ColorfulTheme::default())
-                .with_prompt(format!("{}", "Upstream repository URL for your commands",))
+                .with_prompt("Upstream repository URL for your commands")
                 .default(MICI_REPOSITORY.to_string())
                 .interact_text()?;
             let upstream_cmd_path: String = Input::with_theme(&ColorfulTheme::default())
-                .with_prompt(format!("{}", "Path for your commands in the repository",))
+                .with_prompt("Path for your commands in the repository")
                 .default(MICI_EXAMPLES_PATH.to_string())
                 .interact_text()?;
 
-            init_configuration = InitConfiguration {
+            InitConfiguration {
                 upstream_url: Some(upstream_url),
                 upstream_cmd_path: Some(upstream_cmd_path),
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
-            };
+            }
         } else {
-            init_configuration = InitConfiguration {
+            InitConfiguration {
                 upstream_url: None,
                 upstream_cmd_path: None,
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
-            };
-        }
+            }
+        };
 
         // ~/.mici
         create_folder_at(&get_project_folder())?;
@@ -132,7 +136,7 @@ impl InitCommand {
         let config_file = get_config_file();
         let mut config_yaml = fs::File::create(&config_file)?;
         let config_yaml_as_string = serde_yaml::to_string(&init_configuration)?;
-        config_yaml.write_all(&config_yaml_as_string.as_bytes())?;
+        config_yaml.write_all(config_yaml_as_string.as_bytes())?;
 
         printdoc! {"
             {} Wrote the given configuration at {}{}{}

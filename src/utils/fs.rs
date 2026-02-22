@@ -6,6 +6,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn get_home_dir() -> PathBuf {
+    if let Ok(mici_home) = env::var("MICI_HOME") {
+        return PathBuf::from(mici_home);
+    }
     dirs::home_dir().expect("Could not determine home directory")
 }
 

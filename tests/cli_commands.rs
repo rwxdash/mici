@@ -15,7 +15,7 @@ fn validate_valid_command() {
     let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "hello"])
         .assert()
         .success();
@@ -26,7 +26,7 @@ fn validate_minimal_command() {
     let tmp = setup_mici_home(&[("minimal.yml", &fixture("minimal_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "minimal"])
         .assert()
         .success();
@@ -37,7 +37,7 @@ fn validate_no_inputs() {
     let tmp = setup_mici_home(&[("no-inputs.yml", &fixture("valid_no_inputs.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "no-inputs"])
         .assert()
         .success();
@@ -48,7 +48,7 @@ fn validate_multi_step() {
     let tmp = setup_mici_home(&[("multi.yml", &fixture("valid_multi_step.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "multi"])
         .assert()
         .success();
@@ -59,7 +59,7 @@ fn validate_choice_input() {
     let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "choice"])
         .assert()
         .success();
@@ -70,7 +70,7 @@ fn validate_bool_input() {
     let tmp = setup_mici_home(&[("booltest.yml", &fixture("valid_bool_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "booltest"])
         .assert()
         .success();
@@ -81,7 +81,7 @@ fn validate_env_vars() {
     let tmp = setup_mici_home(&[("env-vars.yml", &fixture("valid_env_vars.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "env-vars"])
         .assert()
         .success();
@@ -92,7 +92,7 @@ fn validate_input_resolution() {
     let tmp = setup_mici_home(&[("input-res.yml", &fixture("valid_input_resolution.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "input-res"])
         .assert()
         .success();
@@ -105,7 +105,7 @@ fn validate_invalid_version_name_steps() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -119,7 +119,7 @@ fn validate_invalid_input_type() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_input_type.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -131,7 +131,7 @@ fn validate_invalid_empty_type() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_empty_type.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -143,7 +143,7 @@ fn validate_invalid_secret_on_bool() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_secret_on_bool.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -155,7 +155,7 @@ fn validate_invalid_choice_no_options() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_choice_no_options.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -167,7 +167,7 @@ fn validate_invalid_options_on_string() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_options_on_string.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -179,7 +179,7 @@ fn validate_invalid_step_empty_id() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_step_no_id.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -191,7 +191,7 @@ fn validate_invalid_step_whitespace_id() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_step_whitespace_id.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -203,7 +203,7 @@ fn validate_invalid_duplicate_step_ids() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_duplicate_step_ids.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -215,7 +215,7 @@ fn validate_invalid_step_no_run() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_step_no_run.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -227,7 +227,7 @@ fn validate_invalid_yaml_syntax() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_yaml_syntax.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -239,7 +239,7 @@ fn validate_invalid_step_command_and_script() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_step_command_and_script.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure();
@@ -250,7 +250,7 @@ fn validate_invalid_multiple_errors() {
     let tmp = setup_mici_home(&[("bad.yml", &fixture("invalid_multiple_errors.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["validate", "bad"])
         .assert()
         .failure()
@@ -267,7 +267,7 @@ fn list_shows_commands() {
     let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["list"])
         .assert()
         .success()
@@ -282,7 +282,7 @@ fn list_shows_multiple_commands() {
     ]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["list"])
         .assert()
         .success()
@@ -297,7 +297,7 @@ fn run_simple_command() {
     let tmp = setup_mici_home(&[("minimal.yml", &fixture("minimal_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("minimal")
         .assert()
         .success()
@@ -309,7 +309,7 @@ fn run_command_with_input() {
     let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["hello", "--name", "Rust"])
         .assert()
         .success()
@@ -321,7 +321,7 @@ fn run_command_with_default_input() {
     let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("hello")
         .assert()
         .success()
@@ -333,7 +333,7 @@ fn run_multi_step() {
     let tmp = setup_mici_home(&[("multi.yml", &fixture("valid_multi_step.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("multi")
         .assert()
         .success()
@@ -347,7 +347,7 @@ fn run_env_vars() {
     let tmp = setup_mici_home(&[("env-vars.yml", &fixture("valid_env_vars.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("env-vars")
         .assert()
         .success()
@@ -360,7 +360,7 @@ fn run_input_resolution_with_args() {
     let tmp = setup_mici_home(&[("input-res.yml", &fixture("valid_input_resolution.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["input-res", "--greeting", "Hi", "--target", "Earth"])
         .assert()
         .success()
@@ -372,7 +372,7 @@ fn run_input_resolution_defaults() {
     let tmp = setup_mici_home(&[("input-res.yml", &fixture("valid_input_resolution.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("input-res")
         .assert()
         .success()
@@ -384,7 +384,7 @@ fn run_choice_input_with_value() {
     let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["choice", "--env", "staging"])
         .assert()
         .success()
@@ -396,7 +396,7 @@ fn run_choice_input_default() {
     let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("choice")
         .assert()
         .success()
@@ -408,7 +408,7 @@ fn run_bool_input_present() {
     let tmp = setup_mici_home(&[("booltest.yml", &fixture("valid_bool_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["booltest", "--dry-run"])
         .assert()
         .success()
@@ -420,7 +420,7 @@ fn run_bool_input_absent() {
     let tmp = setup_mici_home(&[("booltest.yml", &fixture("valid_bool_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("booltest")
         .assert()
         .success()
@@ -432,7 +432,7 @@ fn run_no_inputs_command() {
     let tmp = setup_mici_home(&[("no-inputs.yml", &fixture("valid_no_inputs.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("no-inputs")
         .assert()
         .success()
@@ -446,7 +446,7 @@ fn run_step_failure_propagates() {
     let tmp = setup_mici_home(&[("step-fail.yml", &fixture("valid_step_failure.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("step-fail")
         .assert()
         .failure()
@@ -458,7 +458,7 @@ fn run_nonexistent_command() {
     let tmp = setup_mici_home(&[]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .arg("doesnotexist")
         .assert()
         .success()
@@ -472,7 +472,7 @@ fn dynamic_command_help() {
     let tmp = setup_mici_home(&[("hello.yml", &fixture("valid_command.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["hello", "--help"])
         .assert()
         .success()
@@ -485,7 +485,7 @@ fn dynamic_command_help_shows_choice_options() {
     let tmp = setup_mici_home(&[("choice.yml", &fixture("valid_choice_input.yml"))]);
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .args(["choice", "--help"])
         .assert()
         .success()

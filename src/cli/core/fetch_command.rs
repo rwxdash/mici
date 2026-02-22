@@ -12,6 +12,12 @@ pub struct FetchCommand {
     pub base: BaseCommand,
 }
 
+impl Default for FetchCommand {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FetchCommand {
     pub const fn new() -> Self {
         Self {

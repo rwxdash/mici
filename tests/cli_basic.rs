@@ -70,7 +70,7 @@ fn no_args_without_config() {
     let tmp = tempfile::TempDir::new().unwrap();
 
     mici()
-        .env("HOME", tmp.path())
+        .env("MICI_HOME", tmp.path())
         .assert()
         .success()
         .stdout(predicate::str::contains("init"));
