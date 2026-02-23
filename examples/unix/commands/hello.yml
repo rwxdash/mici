@@ -169,8 +169,11 @@ steps:
       environment:
         DEPLOY_TARGET: "@{inputs.environment}"
         AUTH_TOKEN: "${MY_PRIVATE_TOKEN}"
+        VAR_TWO: "OVERRIDDEN_VALUE_123"
       command: |
         echo "Hello, @{inputs.name}!"
+        echo "Printing: $VAR_ONE"
+        echo "Printing: $VAR_TWO"
         echo "Deploying to: $DEPLOY_TARGET"
 
   - id: "say_hello_script"
