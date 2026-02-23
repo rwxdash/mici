@@ -32,6 +32,25 @@ pub fn setup_mici_home(commands: &[(&str, &str)]) -> TempDir {
     tmp
 }
 
+/// Create a temporary .mici directory with command files and script files.
+pub fn setup_mici_home_with_scripts(
+    commands: &[(&str, &str)],
+    scripts: &[(&str, &str)],
+) -> TempDir {
+    let tmp = setup_mici_home(commands);
+    let scripts_dir = tmp.path().join(".mici").join("jobs").join("scripts");
+
+    for (name, content) in scripts {
+        let script_path = scripts_dir.join(name);
+        if let Some(parent) = script_path.parent() {
+            fs::create_dir_all(parent).unwrap();
+        }
+        fs::write(&script_path, content).unwrap();
+    }
+
+    tmp
+}
+
 /// Read a fixture file from tests/fixtures/
 pub fn fixture(name: &str) -> String {
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))

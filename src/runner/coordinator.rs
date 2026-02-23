@@ -2,7 +2,10 @@ use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
     errors::cli::CliError,
     runner::context::ExecutionContext,
-    utils::resolver::{resolve_environment_variables, resolve_input_variables},
+    utils::{
+        fs::get_scripts_folder,
+        resolver::{resolve_environment_variables, resolve_input_variables},
+    },
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
 use std::{io::IsTerminal, process::Command};
@@ -125,7 +128,12 @@ impl<'a> Coordinator<'a> {
             }
             CommandSchemaStepRunExecution::Script { script } => {
                 let mut c = Command::new(shell);
-                c.arg(script);
+
+                let resolved_script = resolve_input_variables(script, inputs, self.context.matches);
+
+                let script_path = get_scripts_folder().join(&resolved_script);
+
+                c.arg(&script_path);
                 c
             }
         };
@@ -163,6 +171,28 @@ impl<'a> Coordinator<'a> {
             for (key, value) in resolved_env {
                 cmd.env(key, value);
             }
+        }
+
+        // Auto-inject all inputs as MICI_INPUT_* environment variables
+        for (name, input) in inputs {
+            let value = match input.r#type.as_str() {
+                "boolean" | "bool" => {
+                    if self.context.matches.opt_present(name) {
+                        "true".to_string()
+                    } else {
+                        input.default.as_deref().unwrap_or("false").to_string()
+                    }
+                }
+                _ => self
+                    .context
+                    .matches
+                    .opt_str(name)
+                    .or_else(|| input.default.clone())
+                    .unwrap_or_default(),
+            };
+
+            let env_key = format!("MICI_INPUT_{}", name.to_uppercase());
+            cmd.env(env_key, value);
         }
 
         let output = cmd.output().map_err(CliError::from)?;

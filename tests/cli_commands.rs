@@ -654,6 +654,172 @@ fn run_warns_on_unset_env_variable() {
         ));
 }
 
+// ─── Run: scripts ───
+
+#[cfg(unix)]
+#[test]
+fn run_script_step() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[("run-script.yml", &fixture("valid_script.yml"))],
+        &[("hello.sh", "#!/bin/bash\necho \"hello from script\"")],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("run-script")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hello from script"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_script_with_env_vars() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[("script-env.yml", &fixture("valid_script_env.yml"))],
+        &[("show-env.sh", "#!/bin/bash\necho $MY_SCRIPT_VAR")],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("script-env")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("script-env-value"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_script_step() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[("run-script.yml", &fixture("valid_script_windows.yml"))],
+        &[("hello.ps1", "Write-Output \"hello from script\"")],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("run-script")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("hello from script"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_script_with_env_vars() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[("script-env.yml", &fixture("valid_script_env_windows.yml"))],
+        &[("show-env.ps1", "Write-Output $env:MY_SCRIPT_VAR")],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("script-env")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("script-env-value"));
+}
+
+// ─── Run: MICI_INPUT_* auto-injection ───
+
+#[cfg(unix)]
+#[test]
+fn run_auto_input_env_in_command() {
+    let tmp = setup_mici_home(&[("auto-env.yml", &fixture("valid_auto_input_env.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["auto-env", "--name", "injected-value"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("injected-value"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_auto_input_env_in_command() {
+    let tmp = setup_mici_home(&[("auto-env.yml", &fixture("valid_auto_input_env_windows.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["auto-env", "--name", "injected-value"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("injected-value"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_auto_input_env_in_script() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[(
+            "script-inputs.yml",
+            &fixture("valid_script_auto_inputs.yml"),
+        )],
+        &[(
+            "check-inputs.sh",
+            "#!/bin/bash\necho $MICI_INPUT_NAME\necho $MICI_INPUT_FORCE",
+        )],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["script-inputs", "--name", "test-value", "-f"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("test-value"))
+        .stdout(predicate::str::contains("true"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_auto_input_env_in_script() {
+    let tmp = common::setup_mici_home_with_scripts(
+        &[(
+            "script-inputs.yml",
+            &fixture("valid_script_auto_inputs_windows.yml"),
+        )],
+        &[(
+            "check-inputs.ps1",
+            "Write-Output $env:MICI_INPUT_NAME\nWrite-Output $env:MICI_INPUT_FORCE",
+        )],
+    );
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["script-inputs", "--name", "test-value", "-f"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("test-value"))
+        .stdout(predicate::str::contains("true"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_auto_input_env_uses_defaults() {
+    let tmp = setup_mici_home(&[("auto-env.yml", &fixture("valid_auto_input_env.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("auto-env")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("fallback"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_auto_input_env_uses_defaults() {
+    let tmp = setup_mici_home(&[("auto-env.yml", &fixture("valid_auto_input_env_windows.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("auto-env")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("fallback"));
+}
+
 // ─── Dynamic command help ───
 
 #[test]
