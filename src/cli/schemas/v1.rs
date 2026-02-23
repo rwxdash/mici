@@ -1,3 +1,4 @@
+use crate::errors::command::CommandError;
 use crate::utils::traits::ExportAsHashMap;
 
 use serde::{Deserialize, Serialize};
@@ -124,6 +125,50 @@ impl ExportAsHashMap for CommandSchema {
 
         content
     }
+}
+
+// Validation
+/// Validates parsed CLI inputs against their schema definitions.
+/// Checks: required inputs have values (or defaults), choice inputs match allowed options.
+pub fn validate_inputs(
+    inputs: &BTreeMap<String, CommandSchemaInput>,
+    matches: &getopts::Matches,
+) -> Result<(), CommandError> {
+    for (name, input) in inputs {
+        match input.r#type.as_str() {
+            "boolean" | "bool" => continue,
+            "choice" => {
+                let value = matches.opt_str(name).or_else(|| input.default.clone());
+
+                if input.required && value.is_none() {
+                    return Err(CommandError::InputRequired {
+                        input_name: name.clone(),
+                    });
+                }
+
+                if let Some(ref val) = value
+                    && let Some(ref options) = input.options
+                    && !options.contains(val)
+                {
+                    return Err(CommandError::InputInvalidChoice {
+                        input_name: name.clone(),
+                        provided: val.clone(),
+                        expected: options.join(", "),
+                    });
+                }
+            }
+            _ => {
+                let value = matches.opt_str(name).or_else(|| input.default.clone());
+
+                if input.required && value.is_none() {
+                    return Err(CommandError::InputRequired {
+                        input_name: name.clone(),
+                    });
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 // Default Functions

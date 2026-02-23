@@ -1,0 +1,16 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici exit-code
+# @expect-exit: 42
+# @note: Tests that the actual exit code from a step is forwarded
+
+version: "1.0"
+name: "exit-code-test"
+description: "A command that exits with code 42"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "specific-exit"
+    run:
+      command: "exit 42"

@@ -1,0 +1,24 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici auto-env --name "injected-value"
+# @expect-stdout: injected-value
+# @note: Tests that MICI_INPUT_* env vars are available in command steps too
+
+version: "1.0"
+name: "auto-env"
+description: "Tests MICI_INPUT_* auto-injection into commands"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: string
+    description: "A name"
+    short: -n
+    long: --name
+    default: "fallback"
+
+steps:
+  - id: "echo-input-env"
+    run:
+      command: "echo $MICI_INPUT_NAME"

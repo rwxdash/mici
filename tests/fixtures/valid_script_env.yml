@@ -1,0 +1,18 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici script-env
+# @expect-stdout: script-env-value
+# @note: Tests that scripts receive environment variables from the command
+
+version: "1.0"
+name: "script-env"
+description: "Runs a script with environment variables"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "run-with-env"
+    run:
+      environment:
+        MY_SCRIPT_VAR: "script-env-value"
+      script: "show-env.sh"

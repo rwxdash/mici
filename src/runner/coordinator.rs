@@ -1,7 +1,11 @@
 use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
+    errors::cli::CliError,
     runner::context::ExecutionContext,
-    utils::resolver::{resolve_environment_variables, resolve_input_variables},
+    utils::{
+        fs::get_scripts_folder,
+        resolver::{resolve_environment_variables, resolve_input_variables},
+    },
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
 use std::{io::IsTerminal, process::Command};
@@ -15,7 +19,7 @@ impl<'a> Coordinator<'a> {
         Self { context }
     }
 
-    pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self) -> Result<(), CliError> {
         tracing::info!("Starting execution of: {}", self.context.command.name);
 
         if let Some(description) = &self.context.command.description {
@@ -29,7 +33,10 @@ impl<'a> Coordinator<'a> {
                 Confirm::with_theme(&ColorfulTheme::default())
                     .with_prompt("Do you want to continue with the execution?")
                     .wait_for_newline(true)
-                    .interact()?
+                    .interact()
+                    .map_err(|e| CliError::General {
+                        message: e.to_string(),
+                    })?
             } else {
                 tracing::info!("Command confirmation is piped into the command");
 
@@ -78,14 +85,14 @@ impl<'a> Coordinator<'a> {
 
             self.execute_step(step)?;
 
-            tracing::debug!("Step completed: {}", step.id);
+            tracing::info!("Step completed: {}", step.id);
         }
 
         tracing::info!("Done!");
         Ok(())
     }
 
-    fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), Box<dyn std::error::Error>> {
+    fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), CliError> {
         let shell = match &step.run.shell {
             Some(s) => s.as_str(),
             None => {
@@ -121,7 +128,12 @@ impl<'a> Coordinator<'a> {
             }
             CommandSchemaStepRunExecution::Script { script } => {
                 let mut c = Command::new(shell);
-                c.arg(script);
+
+                let resolved_script = resolve_input_variables(script, inputs, self.context.matches);
+
+                let script_path = get_scripts_folder().join(&resolved_script);
+
+                c.arg(&script_path);
                 c
             }
         };
@@ -161,7 +173,29 @@ impl<'a> Coordinator<'a> {
             }
         }
 
-        let output = cmd.output()?;
+        // Auto-inject all inputs as MICI_INPUT_* environment variables
+        for (name, input) in inputs {
+            let value = match input.r#type.as_str() {
+                "boolean" | "bool" => {
+                    if self.context.matches.opt_present(name) {
+                        "true".to_string()
+                    } else {
+                        input.default.as_deref().unwrap_or("false").to_string()
+                    }
+                }
+                _ => self
+                    .context
+                    .matches
+                    .opt_str(name)
+                    .or_else(|| input.default.clone())
+                    .unwrap_or_default(),
+            };
+
+            let env_key = format!("MICI_INPUT_{}", name.to_uppercase());
+            cmd.env(env_key, value);
+        }
+
+        let output = cmd.output().map_err(CliError::from)?;
 
         if !output.stdout.is_empty() {
             print!("{}", String::from_utf8_lossy(&output.stdout));
@@ -171,12 +205,12 @@ impl<'a> Coordinator<'a> {
         }
 
         if !output.status.success() {
-            return Err(format!(
-                "Step '{}' failed with exit code: {:?}",
-                step.id,
-                output.status.code()
-            )
-            .into());
+            let exit_code = output.status.code().unwrap_or(1);
+            tracing::error!("Step '{}' failed with exit code: {}", step.id, exit_code);
+            return Err(CliError::StepFailed {
+                step_id: step.id.clone(),
+                exit_code,
+            });
         }
 
         Ok(())

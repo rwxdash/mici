@@ -7,6 +7,7 @@ use crate::{
     },
     utils::{
         fs::{get_command_file, get_commands_folder},
+        resolver::SECRET_MASK,
         traits::ExportAsHashMap,
         yaml::parse_command_file,
     },
@@ -229,7 +230,14 @@ pub fn print_individual_help(command: &str) {
                         ));
 
                         if let Some(default) = &input_def.default {
-                            options.push_str(&format!(" (default: {})", default.bright_blue()));
+                            if input_def.secret {
+                                options.push_str(&format!(
+                                    " (default: {})",
+                                    SECRET_MASK.bright_blue()
+                                ));
+                            } else {
+                                options.push_str(&format!(" (default: {})", default.bright_blue()));
+                            }
                         }
 
                         if let Some(choices) = &input_def.options {

@@ -1,0 +1,31 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici script-inputs --name "test-value" -f
+# @expect-stdout: test-value
+# @expect-stdout: true
+# @note: Windows variant — Tests MICI_INPUT_* auto-injection into scripts
+
+version: "1.0"
+name: "script-inputs"
+description: "Tests MICI_INPUT_* auto-injection into scripts"
+
+configuration:
+  confirm: false
+
+inputs:
+  name:
+    type: string
+    description: "A name"
+    short: -n
+    long: --name
+    default: "default-name"
+  force:
+    type: boolean
+    description: "Force flag"
+    short: -f
+    long: --force
+
+steps:
+  - id: "check-inputs"
+    run:
+      shell: "powershell"
+      script: "check-inputs.ps1"

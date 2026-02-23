@@ -225,16 +225,30 @@ inputs:
 #           Override working directory for this step only
 #         command: String
 #           [Required if no script]
-#           Inline command/script to execute
+#           Inline command to execute
+#           Supports @{inputs.*} variable substitution
 #         script: String
 #           [Required if no command]
-#           Path to external script file
-#         args: List | Map
-#           [Optional]  default: null
-#           Arguments passed to command/script
-#           Formats:
-#             - List: ["arg1", "arg2", "arg3"]
-#             - Map: {"key1": "value1", "key2": "@{inputs.name}"}
+#           Path to an external script file, relative to ~/.mici/jobs/scripts/
+#           Supports @{inputs.*} variable substitution in the path
+#           The shell field doubles as the interpreter:
+#             shell: "bash"    → bash    ~/.mici/jobs/scripts/deploy.sh
+#             shell: "python3" → python3 ~/.mici/jobs/scripts/deploy.py
+#             shell: "node"    → node    ~/.mici/jobs/scripts/deploy.js
+#
+##  Auto-injected Environment Variables
+#
+#   All inputs are automatically injected as MICI_INPUT_<NAME> environment
+#   variables into every step (both command and script). For example:
+#     Input "name"        → MICI_INPUT_NAME
+#     Input "force"       → MICI_INPUT_FORCE
+#     Input "environment" → MICI_INPUT_ENVIRONMENT
+#
+#   This allows scripts to access inputs without @{inputs.*} substitution:
+#     bash:       echo $MICI_INPUT_NAME
+#     python:     os.environ["MICI_INPUT_NAME"]
+#     node:       process.env.MICI_INPUT_NAME
+#     powershell: $env:MICI_INPUT_NAME
 #
 steps:
   - id: "{step_id}"
@@ -243,16 +257,27 @@ steps:
       shell: "{shell}"
       working_directory: null
       environment:
-        VAR_TWO: "ANOTHER_VALUE_456"
+        DEPLOY_TARGET: "@{inputs.environment}"
+        VAR_TWO: "OVERRIDDEN_VALUE_123"
       command: |
         {command}
 "#;
 
         #[cfg(unix)]
         let default_shell: &'static str = "bash";
+        #[cfg(unix)]
+        let command = r#"echo "Hello, @{inputs.name}!"
+        echo "Printing: $VAR_ONE"
+        echo "Printing: $VAR_TWO"
+        echo "Deploying to: $DEPLOY_TARGET""#;
 
         #[cfg(windows)]
         let default_shell: &'static str = "powershell";
+        #[cfg(windows)]
+        let command = r#"Write-Output "Hello, @{inputs.name}!"
+        Write-Output "Printing: $env:VAR_ONE"
+        Write-Output "Printing: $env:VAR_TWO"
+        Write-Output "Deploying to: $env:DEPLOY_TARGET""#;
 
         let name = command_path.replace(path::MAIN_SEPARATOR_STR, " ");
         let usage = format!("mici {}", &name);
@@ -271,16 +296,19 @@ steps:
             .replace("{step_id}", "say_hello")
             .replace("{step_name}", "Say hello on terminal")
             .replace("{shell}", default_shell)
-            .replace("{command}", r#"echo "Hello, @{inputs.name}!""#);
+            .replace("{command}", command);
         fs::write(&file_path, yaml_content)?;
 
         printdoc! {"
                 {} Created new command at {}
-                  Edit the file to customize your command and
+                  Edit the file with {} {} {} to customize your command
                   Run {} {} to use it
             ",
             ">".bright_green(),
             file_path.display().to_string().bright_cyan().bold(),
+            EXECUTABLE.get().unwrap().bright_yellow().bold(),
+            "edit".bright_yellow().bold(),
+            &command_path.replace(path::MAIN_SEPARATOR_STR, " ").bright_yellow().bold(),
             EXECUTABLE.get().unwrap().bright_yellow().bold(),
             &command_path.replace(path::MAIN_SEPARATOR_STR, " ").bright_yellow().bold(),
         };

@@ -3,10 +3,18 @@ pub mod errors;
 pub mod runner;
 pub mod utils;
 use crate::{
-    cli::core::{
-        base_command::InitConfiguration, config_command::CONFIG_COMMAND,
-        edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-        list_command::LIST_COMMAND, new_command::NEW_COMMAND, validate_command::VALIDATE_COMMAND,
+    cli::{
+        core::{
+            base_command::{InitConfiguration, LogTimer},
+            config_command::CONFIG_COMMAND,
+            edit_command::EDIT_COMMAND,
+            fetch_command::FETCH_COMMAND,
+            init_command::INIT_COMMAND,
+            list_command::LIST_COMMAND,
+            new_command::NEW_COMMAND,
+            validate_command::VALIDATE_COMMAND,
+        },
+        schemas::v1,
     },
     errors::cli::CliError,
     runner::{context::ExecutionContext, coordinator::Coordinator},
@@ -29,14 +37,6 @@ fn main() -> miette::Result<()> {
 }
 
 fn run() -> miette::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("mici=info".parse().unwrap()),
-        )
-        .without_time()
-        .init();
-
     let args: Vec<String> = env::args().collect();
 
     // Set which executable is called the command
@@ -47,45 +47,127 @@ fn run() -> miette::Result<()> {
         .to_string();
     EXECUTABLE.set(executable).unwrap();
 
-    // Read existing configuration file
+    // Read existing configuration file (before tracing init so log_timer is respected)
     let config_file = get_config_file();
-    if config_file.exists() {
+    let config = if config_file.exists() {
         match fs::read_to_string(&config_file) {
             Ok(config_yaml_str) => {
-                match serde_yaml::from_str::<InitConfiguration>(&config_yaml_str) {
-                    Ok(config) => {
-                        // Control terminal colors
-                        match config.disable_cli_color {
-                            Some(true) => {
-                                colored::control::set_override(false);
-                            }
-                            _ => {
-                                colored::control::set_override(true);
-                            }
-                        }
-
-                        // Control pager
-                        if let Some(true) = config.disable_pager {
-                            unsafe {
-                                std::env::set_var("NOPAGER", "1");
-                            }
+                // Warn about unknown config keys by comparing against struct fields
+                if let Ok(parsed) = serde_yaml::from_str::<serde_yaml::Value>(&config_yaml_str)
+                    && let Ok(reference) = serde_yaml::to_value(InitConfiguration::default())
+                    && let (Some(parsed_map), Some(known_map)) =
+                        (parsed.as_mapping(), reference.as_mapping())
+                {
+                    for key in parsed_map.keys() {
+                        if !known_map.contains_key(key)
+                            && let Some(key_str) = key.as_str()
+                        {
+                            eprintln!(
+                                "{}",
+                                format!(
+                                    "{} Warning: Unknown config key '{}' in {}",
+                                    ">".bright_black(),
+                                    key_str,
+                                    config_file.display()
+                                )
+                                .on_bright_yellow()
+                            );
                         }
                     }
+                }
+
+                match serde_yaml::from_str::<InitConfiguration>(&config_yaml_str) {
+                    Ok(config) => Some(config),
                     Err(e) => {
                         eprintln!(
-                            "{} Warning: Failed to parse config file: {}",
-                            ">".bright_black(),
-                            e
+                            "{}",
+                            format!(
+                                "{} Warning: Failed to parse config file: {}",
+                                ">".bright_black(),
+                                e
+                            )
+                            .on_bright_yellow()
                         );
+                        None
                     }
                 }
             }
             Err(e) => {
                 eprintln!(
-                    "{} Warning: Failed to read config file: {}",
-                    ">".bright_black(),
-                    e
+                    "{}",
+                    format!(
+                        "{} Warning: Failed to read config file: {}",
+                        ">".bright_black(),
+                        e
+                    )
+                    .on_bright_yellow()
                 );
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    // Initialize tracing with configured log level and timer style
+    let log_level = config
+        .as_ref()
+        .and_then(|c| c.log_level.clone())
+        .unwrap_or_default();
+
+    let env_filter = tracing_subscriber::EnvFilter::from_default_env()
+        .add_directive(format!("mici={}", log_level).parse().unwrap());
+
+    let log_timer = config
+        .as_ref()
+        .and_then(|c| c.log_timer.clone())
+        .unwrap_or_default();
+
+    match log_timer {
+        LogTimer::Uptime => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_writer(std::io::stderr)
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .with_timer(tracing_subscriber::fmt::time::uptime())
+                .init();
+        }
+        LogTimer::Wallclock => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_writer(std::io::stderr)
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .init();
+        }
+        LogTimer::None => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_writer(std::io::stderr)
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .without_time()
+                .init();
+        }
+    }
+
+    // Apply remaining config settings
+    if let Some(config) = &config {
+        // Control terminal colors
+        match config.disable_cli_color {
+            Some(true) => {
+                colored::control::set_override(false);
+            }
+            _ => {
+                colored::control::set_override(true);
+            }
+        }
+
+        // Control pager
+        if let Some(true) = config.disable_pager {
+            unsafe {
+                std::env::set_var("NOPAGER", "1");
             }
         }
     }
@@ -105,10 +187,11 @@ fn run() -> miette::Result<()> {
         }
         Some("fetch") => {
             opts.optopt("b", "branch", "", "");
+            opts.optflag("f", "force", "");
             let matches = parse_opts(&opts, &args[1..])?;
 
             FETCH_COMMAND
-                .run(matches.opt_str("b"))
+                .run(matches.opt_str("b"), matches.opt_present("force"))
                 .map_err(CliError::from)?;
         }
         Some("new") => run_args_command(&opts, &args, |a| NEW_COMMAND.run(a))?,
@@ -237,10 +320,25 @@ fn run_dynamic_command(args: &[String], opts: &mut Options) -> miette::Result<()
 
     let matches = parse_opts(opts, option_args)?;
 
+    if let Some(inputs) = &cmd.inputs {
+        v1::validate_inputs(inputs, &matches)?;
+    }
+
     let context = ExecutionContext::new(&cmd, &matches);
     let coordinator = Coordinator::with_context(context);
 
-    coordinator.run().map_err(CliError::from)?;
+    if let Err(e) = coordinator.run() {
+        match e {
+            CliError::StepFailed {
+                ref step_id,
+                exit_code,
+            } => {
+                eprintln!("Step '{}' failed with exit code: {}", step_id, exit_code);
+                std::process::exit(exit_code);
+            }
+            _ => return Err(e.into()),
+        }
+    }
 
     Ok(())
 }

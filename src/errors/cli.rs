@@ -19,6 +19,9 @@ pub enum CliError {
 
     #[error("Argument error: {0}")]
     ArgParse(String),
+
+    #[error("Step '{step_id}' failed with exit code: {exit_code}")]
+    StepFailed { step_id: String, exit_code: i32 },
 }
 
 impl From<String> for CliError {

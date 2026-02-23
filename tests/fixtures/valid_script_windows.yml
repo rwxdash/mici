@@ -1,0 +1,17 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici run-script
+# @expect-stdout: hello from script
+# @note: Windows variant — Tests basic script execution from scripts folder
+
+version: "1.0"
+name: "run-script"
+description: "Runs a script from the scripts folder"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "run-hello"
+    run:
+      shell: "powershell"
+      script: "hello.ps1"

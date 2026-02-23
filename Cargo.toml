@@ -1,12 +1,12 @@
 # Package
 [package]
 name = "mici"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2024"
 license = "Apache-2.0"
 description = "Lightweight CLI framework based on filesystem hierarchy"
 authors = ["Oguzhan Ozdemir"]
-exclude = [".*", "rfc/"]
+exclude = [".*", "rfc/", "tests/"]
 categories = [
     "command-line-utilities",
     "command-line-interface",
@@ -27,7 +27,6 @@ git2 = "0.20.2"
 handlebars = "6.3.2"
 indoc = "2.0.6"
 miette = { version = "7.6.0", features = ["fancy"] }
-openssl = { version = "0.10.75", features = ["vendored"] }
 regex = "1.11.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.142"
@@ -39,6 +38,11 @@ tracing-subscriber = { version = "0.3", features = [
     "fmt",
     "ansi",
 ] }
+# Note: On Windows, this will expect you to have OpenSSL installed
+# without needing to compile it from source
+[target.'cfg(not(windows))'.dependencies]
+openssl = { version = "0.10", features = ["vendored"] }
+
 
 [dev-dependencies]
 assert_cmd = "2.1"

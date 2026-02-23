@@ -1,0 +1,18 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici warn-env
+# @expect-stderr: Environment variable
+# @note: Tests warning when ${ENV_VAR} references an unset variable
+
+version: "1.0"
+name: "warn-unset-env"
+description: "References an environment variable that is not set"
+
+configuration:
+  confirm: false
+  environment:
+    MY_VAR: "${MICI_TEST_UNSET_VAR_THAT_DOES_NOT_EXIST}"
+
+steps:
+  - id: "use-unset-env"
+    run:
+      command: "echo done"
