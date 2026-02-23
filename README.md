@@ -168,20 +168,19 @@ There are some major stories to complete before I call this project version 1.0.
 - [x] Secret masking for `secret: true` inputs in logs/output
 - [x] Config validation — reject unknown/misspelled keys in `config.yml`
 - [x] Better `fetch` UX — confirmation prompt and/or backup before nuking local commands
+- [x] Logging improvements
+    + [x] Log level configurable through `config.yml`
+    + [x] Silent mode
+    + [x] Timestamps
+- [X] Exit code forwarding — propagate step exit codes to the caller (currently always exits 1)
+- [x] Implement `script: "scripts/..."` usage for steps
+  - [x] Pass inputs as env vars (e.g., MICI_INPUT_<INPUT_NAME>=<INPUT_VALUE>).
 
 #### Up next
 
-- [ ] Implement `script: "scripts/..."` usage for steps
+- [ ] Parallel step execution
 - [ ] Step output capture (stdout/stderr per step)
     + Prerequisite for `@{steps.<STEP_ID>.output}` in expressions
-
-#### Later
-
-- [ ] Logging improvements
-    + [ ] Log level configurable through `config.yml`
-    + [ ] Silent mode
-    + [ ] OpenTelemetry export
-- [ ] Parallel step execution
 - [ ] Implement expression evaluator for `when:` in steps
     + [ ] `on_failure()`                  # any previous step failed
     + [ ] `on_success()`                  # all previous steps passed
@@ -192,8 +191,14 @@ There are some major stories to complete before I call this project version 1.0.
     + [ ] `@{inputs.branch} == "main"`
     + [ ] `@{steps.<STEP_ID>.output} == "success"`
     + [ ] Accept operators and chains
+
+#### Later
+
 - [ ] Runner/step-execution isolation
     + with chroot/containers/microvms
+- [ ] OpenTelemetry Support
+    + [ ] OpenTelemetry export through config.yml
+    + [ ] OpenTelemetry export through command's yml
 
 ## Contributions and Code of Conduct
 
