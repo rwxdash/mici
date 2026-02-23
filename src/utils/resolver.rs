@@ -97,6 +97,7 @@ pub fn resolve_environment_variables(
                         if let Some(input) = inputs.get(variable_name) {
                             resolve_input_value(variable_name, input, matches)
                         } else {
+                            tracing::warn!("Unknown input reference '@{{inputs.{}}}', resolving to empty string", variable_name);
                             "".to_string()
                         }
                     })
@@ -115,7 +116,13 @@ pub fn resolve_environment_variables(
                         variable_resolved = false;
                         caps[0].to_string() // Keep ${VAR} unchanged
                     } else {
-                        std::env::var(variable_name).unwrap_or_default()
+                        match std::env::var(variable_name) {
+                            Ok(val) => val,
+                            Err(_) => {
+                                tracing::warn!("Environment variable '{}' is not set, resolving to empty string", variable_name);
+                                String::new()
+                            }
+                        }
                     }
                 })
                 .to_string();
@@ -134,7 +141,9 @@ pub fn resolve_environment_variables(
 
         if !progress_made {
             // No progress made - likely circular references
-            // Just resolve remaining with OS env vars
+            tracing::warn!(
+                "Possible circular references in environment variables, resolving remaining with OS environment"
+            );
             for (key, value) in pending {
                 let result = env_re
                     .replace_all(&value, |caps: &regex::Captures| {
@@ -166,6 +175,10 @@ pub fn resolve_input_variables(
             if let Some(input) = inputs.get(variable_name) {
                 resolve_input_value(variable_name, input, matches)
             } else {
+                tracing::warn!(
+                    "Unknown input reference '@{{inputs.{}}}', resolving to empty string",
+                    variable_name
+                );
                 "".to_string()
             }
         })

@@ -622,6 +622,38 @@ fn run_nonexistent_command() {
         .stdout(predicate::str::contains("Can't run command"));
 }
 
+// ─── Run: warnings ───
+
+#[cfg(unix)]
+#[test]
+fn run_warns_on_unknown_input_reference() {
+    let tmp = setup_mici_home(&[("warn-input.yml", &fixture("valid_warn_unknown_input.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("warn-input")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Unknown input reference"))
+        .stderr(predicate::str::contains("nonexistent"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_warns_on_unset_env_variable() {
+    let tmp = setup_mici_home(&[("warn-env.yml", &fixture("valid_warn_unset_env.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("warn-env")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("Environment variable"))
+        .stderr(predicate::str::contains(
+            "MICI_TEST_UNSET_VAR_THAT_DOES_NOT_EXIST",
+        ));
+}
+
 // ─── Dynamic command help ───
 
 #[test]

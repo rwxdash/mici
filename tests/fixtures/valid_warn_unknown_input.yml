@@ -1,0 +1,16 @@
+# @test: validate should PASS (schema is valid)
+# @run:  mici warn-input
+# @expect-stderr: Unknown input reference
+# @note: Tests warning when @{inputs.X} references an undefined input
+
+version: "1.0"
+name: "warn-unknown-input"
+description: "References an input that does not exist"
+
+configuration:
+  confirm: false
+
+steps:
+  - id: "use-unknown-input"
+    run:
+      command: "echo @{inputs.nonexistent}"

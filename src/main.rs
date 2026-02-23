@@ -127,6 +127,7 @@ fn run() -> miette::Result<()> {
         LogTimer::Uptime => {
             tracing_subscriber::fmt()
                 .compact()
+                .with_writer(std::io::stderr)
                 .with_env_filter(env_filter)
                 .with_target(false)
                 .with_timer(tracing_subscriber::fmt::time::uptime())
@@ -135,6 +136,7 @@ fn run() -> miette::Result<()> {
         LogTimer::Wallclock => {
             tracing_subscriber::fmt()
                 .compact()
+                .with_writer(std::io::stderr)
                 .with_env_filter(env_filter)
                 .with_target(false)
                 .init();
@@ -142,6 +144,7 @@ fn run() -> miette::Result<()> {
         LogTimer::None => {
             tracing_subscriber::fmt()
                 .compact()
+                .with_writer(std::io::stderr)
                 .with_env_filter(env_filter)
                 .with_target(false)
                 .without_time()
