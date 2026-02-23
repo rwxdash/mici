@@ -144,15 +144,17 @@ impl InitCommand {
 
         printdoc! {"
             {} Wrote the given configuration at {}{}{}
-              You can update this configuration manually by editing this file
+              You can run {} {} to update your configuration
               Run {} {} to pull your commands from this repository
             ",
             ">".bright_black(),
             project_folder.display().to_string().bright_cyan().bold(),
             path::MAIN_SEPARATOR_STR,
             "config.yml".bright_cyan().bold(),
-            EXECUTABLE.get().unwrap(),
-            "fetch".blue().bold(),
+            EXECUTABLE.get().unwrap().bright_yellow().bold(),
+            "config".bright_yellow().bold(),
+            EXECUTABLE.get().unwrap().bright_yellow().bold(),
+            "fetch".bright_yellow().bold(),
         }
 
         Ok(())
