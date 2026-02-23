@@ -175,9 +175,11 @@ impl<'a> Coordinator<'a> {
         }
 
         if !output.status.success() {
+            let exit_code = output.status.code().unwrap_or(1);
+            tracing::error!("Step '{}' failed with exit code: {}", step.id, exit_code);
             return Err(CliError::StepFailed {
                 step_id: step.id.clone(),
-                exit_code: output.status.code().unwrap_or(1),
+                exit_code,
             });
         }
 

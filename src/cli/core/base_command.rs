@@ -23,6 +23,31 @@ impl fmt::Display for LogTimer {
     }
 }
 
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    #[default]
+    Info,
+    Debug,
+    Warn,
+    Error,
+    Trace,
+    Off,
+}
+
+impl fmt::Display for LogLevel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LogLevel::Info => write!(f, "info"),
+            LogLevel::Debug => write!(f, "debug"),
+            LogLevel::Warn => write!(f, "warn"),
+            LogLevel::Error => write!(f, "error"),
+            LogLevel::Trace => write!(f, "trace"),
+            LogLevel::Off => write!(f, "off"),
+        }
+    }
+}
+
 pub struct BaseCommand {
     pub name: &'static str,
     pub description: &'static str,
@@ -52,6 +77,7 @@ pub struct InitConfiguration {
     pub disable_cli_color: Option<bool>,
     pub disable_pager: Option<bool>,
     pub log_timer: Option<LogTimer>,
+    pub log_level: Option<LogLevel>,
 }
 
 impl Serialize for InitConfiguration {
@@ -59,12 +85,13 @@ impl Serialize for InitConfiguration {
     where
         S: Serializer,
     {
-        let mut s = serializer.serialize_struct("InitConfiguration", 5)?;
+        let mut s = serializer.serialize_struct("InitConfiguration", 6)?;
         s.serialize_field("upstream_url", &self.upstream_url)?;
         s.serialize_field("upstream_cmd_path", &self.upstream_cmd_path)?;
         s.serialize_field("disable_cli_color", &self.disable_cli_color)?;
         s.serialize_field("disable_pager", &self.disable_pager)?;
         s.serialize_field("log_timer", &self.log_timer)?;
+        s.serialize_field("log_level", &self.log_level)?;
         s.end()
     }
 }

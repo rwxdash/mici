@@ -1,6 +1,6 @@
 use crate::EXECUTABLE;
 use crate::cli::core::base_command::BaseCommand;
-use crate::cli::core::base_command::{InitConfiguration, LogTimer};
+use crate::cli::core::base_command::{InitConfiguration, LogLevel, LogTimer};
 use crate::utils::fs::*;
 use colored::*;
 use dialoguer::{Input, theme::ColorfulTheme};
@@ -118,6 +118,7 @@ impl InitCommand {
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
                 log_timer: Some(LogTimer::Wallclock),
+                log_level: Some(LogLevel::Info),
             }
         } else {
             InitConfiguration {
@@ -126,6 +127,7 @@ impl InitCommand {
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
                 log_timer: Some(LogTimer::Wallclock),
+                log_level: Some(LogLevel::Info),
             }
         };
 
@@ -208,8 +210,19 @@ disable_pager: {disable_pager}
 #           "wallclock" - Full timestamps (e.g., 2026-02-23T14:30:00Z)
 #           "uptime"    - Time since process start (e.g., 0.003s)
 #           "none"      - No timestamps in log output
+#   log_level: String
+#         [Optional]  default: "info"
+#         Minimum log level for tracing output
+#         Options:
+#           "trace" - Most verbose, includes all messages
+#           "debug" - Detailed diagnostic messages
+#           "info"  - General informational messages
+#           "warn"  - Warning messages only
+#           "error" - Error messages only
+#           "off"   - Suppress all log output (silent mode)
 #
 log_timer: {log_timer}
+log_level: {log_level}
 "#,
             upstream_url = format_optional(&config.upstream_url),
             upstream_cmd_path = format_optional(&config.upstream_cmd_path),
@@ -219,6 +232,10 @@ log_timer: {log_timer}
                 .log_timer
                 .as_ref()
                 .map_or("wallclock".to_string(), |t| t.to_string()),
+            log_level = config
+                .log_level
+                .as_ref()
+                .map_or("info".to_string(), |l| l.to_string()),
         )
     }
 }

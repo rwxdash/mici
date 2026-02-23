@@ -109,9 +109,14 @@ fn run() -> miette::Result<()> {
         None
     };
 
-    // Initialize tracing with configured timer style
+    // Initialize tracing with configured log level and timer style
+    let log_level = config
+        .as_ref()
+        .and_then(|c| c.log_level.clone())
+        .unwrap_or_default();
+
     let env_filter = tracing_subscriber::EnvFilter::from_default_env()
-        .add_directive("mici=info".parse().unwrap());
+        .add_directive(format!("mici={}", log_level).parse().unwrap());
 
     let log_timer = config
         .as_ref()
