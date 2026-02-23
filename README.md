@@ -67,8 +67,8 @@ Create your commands as YAML files in a directory hierarchy.
     │   └── hello.yml                   # mici hello
     │
     └── scripts                         # Usable as:
-        ├── hello.py                    #   scripts/hello.py
-        └── run.sh                      #   scripts/run.sh
+        ├── hello.py                    #   hello.py
+        └── run.sh                      #   run.sh
 ```
 
 Each YAML file has CI-like attributes - environment variables, confirmation prompts, parallel execution, and more; allowing `mici` to customize your run of that command and generate `help` documentation based on the available information.
