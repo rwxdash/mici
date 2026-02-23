@@ -1,6 +1,6 @@
 use crate::EXECUTABLE;
 use crate::cli::core::base_command::BaseCommand;
-use crate::cli::core::base_command::InitConfiguration;
+use crate::cli::core::base_command::{InitConfiguration, LogTimer};
 use crate::utils::fs::*;
 use colored::*;
 use dialoguer::{Input, theme::ColorfulTheme};
@@ -117,6 +117,7 @@ impl InitCommand {
                 upstream_cmd_path: Some(upstream_cmd_path),
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
+                log_timer: Some(LogTimer::Wallclock),
             }
         } else {
             InitConfiguration {
@@ -124,6 +125,7 @@ impl InitCommand {
                 upstream_cmd_path: None,
                 disable_cli_color: Some(false),
                 disable_pager: Some(false),
+                log_timer: Some(LogTimer::Wallclock),
             }
         };
 
@@ -135,7 +137,7 @@ impl InitCommand {
 
         let config_file = get_config_file();
         let mut config_yaml = fs::File::create(&config_file)?;
-        let config_yaml_as_string = serde_yaml::to_string(&init_configuration)?;
+        let config_yaml_as_string = self.format_config_yaml(&init_configuration);
         config_yaml.write_all(config_yaml_as_string.as_bytes())?;
 
         printdoc! {"
@@ -152,6 +154,72 @@ impl InitCommand {
         }
 
         Ok(())
+    }
+
+    fn format_config_yaml(&self, config: &InitConfiguration) -> String {
+        let format_optional = |val: &Option<String>| match val {
+            Some(v) => format!("\"{}\"", v),
+            None => "null".to_string(),
+        };
+
+        let format_bool = |val: &Option<bool>| match val {
+            Some(true) => "true".to_string(),
+            Some(false) => "false".to_string(),
+            None => "false".to_string(),
+        };
+
+        format!(
+            r#"##  ==================================================
+##  mici Configuration
+##  Global settings for all mici commands
+##  ==================================================
+
+##  Upstream Repository
+#
+#   upstream_url: String
+#         [Optional]  default: null
+#         Git repository URL where your commands are stored
+#         Used by `mici fetch` to pull commands from a remote
+#   upstream_cmd_path: String
+#         [Optional]  default: null
+#         Path to the commands directory within the repository
+#
+upstream_url: {upstream_url}
+upstream_cmd_path: {upstream_cmd_path}
+
+##  Terminal Settings
+#
+#   disable_cli_color: bool
+#         [Optional]  default: false
+#         Disable colored output in the terminal
+#   disable_pager: bool
+#         [Optional]  default: false
+#         Disable the pager for long output (e.g., help text)
+#
+disable_cli_color: {disable_cli_color}
+disable_pager: {disable_pager}
+
+##  Logging
+#
+#   log_timer: String
+#         [Optional]  default: "wallclock"
+#         Timer style for tracing log output
+#         Options:
+#           "wallclock" - Full timestamps (e.g., 2026-02-23T14:30:00Z)
+#           "uptime"    - Time since process start (e.g., 0.003s)
+#           "none"      - No timestamps in log output
+#
+log_timer: {log_timer}
+"#,
+            upstream_url = format_optional(&config.upstream_url),
+            upstream_cmd_path = format_optional(&config.upstream_cmd_path),
+            disable_cli_color = format_bool(&config.disable_cli_color),
+            disable_pager = format_bool(&config.disable_pager),
+            log_timer = config
+                .log_timer
+                .as_ref()
+                .map_or("wallclock".to_string(), |t| t.to_string()),
+        )
     }
 }
 

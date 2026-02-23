@@ -82,7 +82,7 @@ impl<'a> Coordinator<'a> {
 
             self.execute_step(step)?;
 
-            tracing::debug!("Step completed: {}", step.id);
+            tracing::info!("Step completed: {}", step.id);
         }
 
         tracing::info!("Done!");

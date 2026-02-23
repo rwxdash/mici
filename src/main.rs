@@ -5,9 +5,13 @@ pub mod utils;
 use crate::{
     cli::{
         core::{
-            base_command::InitConfiguration, config_command::CONFIG_COMMAND,
-            edit_command::EDIT_COMMAND, fetch_command::FETCH_COMMAND, init_command::INIT_COMMAND,
-            list_command::LIST_COMMAND, new_command::NEW_COMMAND,
+            base_command::{InitConfiguration, LogTimer},
+            config_command::CONFIG_COMMAND,
+            edit_command::EDIT_COMMAND,
+            fetch_command::FETCH_COMMAND,
+            init_command::INIT_COMMAND,
+            list_command::LIST_COMMAND,
+            new_command::NEW_COMMAND,
             validate_command::VALIDATE_COMMAND,
         },
         schemas::v1,
@@ -33,14 +37,6 @@ fn main() -> miette::Result<()> {
 }
 
 fn run() -> miette::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::from_default_env()
-                .add_directive("mici=info".parse().unwrap()),
-        )
-        .without_time()
-        .init();
-
     let args: Vec<String> = env::args().collect();
 
     // Set which executable is called the command
@@ -51,9 +47,9 @@ fn run() -> miette::Result<()> {
         .to_string();
     EXECUTABLE.set(executable).unwrap();
 
-    // Read existing configuration file
+    // Read existing configuration file (before tracing init so log_timer is respected)
     let config_file = get_config_file();
-    if config_file.exists() {
+    let config = if config_file.exists() {
         match fs::read_to_string(&config_file) {
             Ok(config_yaml_str) => {
                 // Warn about unknown config keys by comparing against struct fields
@@ -81,24 +77,7 @@ fn run() -> miette::Result<()> {
                 }
 
                 match serde_yaml::from_str::<InitConfiguration>(&config_yaml_str) {
-                    Ok(config) => {
-                        // Control terminal colors
-                        match config.disable_cli_color {
-                            Some(true) => {
-                                colored::control::set_override(false);
-                            }
-                            _ => {
-                                colored::control::set_override(true);
-                            }
-                        }
-
-                        // Control pager
-                        if let Some(true) = config.disable_pager {
-                            unsafe {
-                                std::env::set_var("NOPAGER", "1");
-                            }
-                        }
-                    }
+                    Ok(config) => Some(config),
                     Err(e) => {
                         eprintln!(
                             "{}",
@@ -109,6 +88,7 @@ fn run() -> miette::Result<()> {
                             )
                             .on_bright_yellow()
                         );
+                        None
                     }
                 }
             }
@@ -122,6 +102,64 @@ fn run() -> miette::Result<()> {
                     )
                     .on_bright_yellow()
                 );
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    // Initialize tracing with configured timer style
+    let env_filter = tracing_subscriber::EnvFilter::from_default_env()
+        .add_directive("mici=info".parse().unwrap());
+
+    let log_timer = config
+        .as_ref()
+        .and_then(|c| c.log_timer.clone())
+        .unwrap_or_default();
+
+    match log_timer {
+        LogTimer::Uptime => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .with_timer(tracing_subscriber::fmt::time::uptime())
+                .init();
+        }
+        LogTimer::Wallclock => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .init();
+        }
+        LogTimer::None => {
+            tracing_subscriber::fmt()
+                .compact()
+                .with_env_filter(env_filter)
+                .with_target(false)
+                .without_time()
+                .init();
+        }
+    }
+
+    // Apply remaining config settings
+    if let Some(config) = &config {
+        // Control terminal colors
+        match config.disable_cli_color {
+            Some(true) => {
+                colored::control::set_override(false);
+            }
+            _ => {
+                colored::control::set_override(true);
+            }
+        }
+
+        // Control pager
+        if let Some(true) = config.disable_pager {
+            unsafe {
+                std::env::set_var("NOPAGER", "1");
             }
         }
     }

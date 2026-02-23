@@ -1,7 +1,27 @@
 use serde::{Deserialize, Serialize, Serializer, ser::SerializeStruct};
 use std::collections::HashMap;
+use std::fmt;
 
 use crate::utils::traits::ExportAsHashMap;
+
+#[derive(Debug, Default, Clone, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LogTimer {
+    #[default]
+    Wallclock,
+    Uptime,
+    None,
+}
+
+impl fmt::Display for LogTimer {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LogTimer::Wallclock => write!(f, "wallclock"),
+            LogTimer::Uptime => write!(f, "uptime"),
+            LogTimer::None => write!(f, "none"),
+        }
+    }
+}
 
 pub struct BaseCommand {
     pub name: &'static str,
@@ -31,6 +51,7 @@ pub struct InitConfiguration {
     pub upstream_cmd_path: Option<String>,
     pub disable_cli_color: Option<bool>,
     pub disable_pager: Option<bool>,
+    pub log_timer: Option<LogTimer>,
 }
 
 impl Serialize for InitConfiguration {
@@ -38,11 +59,12 @@ impl Serialize for InitConfiguration {
     where
         S: Serializer,
     {
-        let mut s = serializer.serialize_struct("InitConfiguration", 4)?;
+        let mut s = serializer.serialize_struct("InitConfiguration", 5)?;
         s.serialize_field("upstream_url", &self.upstream_url)?;
         s.serialize_field("upstream_cmd_path", &self.upstream_cmd_path)?;
         s.serialize_field("disable_cli_color", &self.disable_cli_color)?;
         s.serialize_field("disable_pager", &self.disable_pager)?;
+        s.serialize_field("log_timer", &self.log_timer)?;
         s.end()
     }
 }
