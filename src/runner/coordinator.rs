@@ -1,5 +1,6 @@
 use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
+    errors::cli::CliError,
     runner::context::ExecutionContext,
     utils::resolver::{resolve_environment_variables, resolve_input_variables},
 };
@@ -15,7 +16,7 @@ impl<'a> Coordinator<'a> {
         Self { context }
     }
 
-    pub fn run(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn run(&self) -> Result<(), CliError> {
         tracing::info!("Starting execution of: {}", self.context.command.name);
 
         if let Some(description) = &self.context.command.description {
@@ -29,7 +30,10 @@ impl<'a> Coordinator<'a> {
                 Confirm::with_theme(&ColorfulTheme::default())
                     .with_prompt("Do you want to continue with the execution?")
                     .wait_for_newline(true)
-                    .interact()?
+                    .interact()
+                    .map_err(|e| CliError::General {
+                        message: e.to_string(),
+                    })?
             } else {
                 tracing::info!("Command confirmation is piped into the command");
 
@@ -85,7 +89,7 @@ impl<'a> Coordinator<'a> {
         Ok(())
     }
 
-    fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), Box<dyn std::error::Error>> {
+    fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), CliError> {
         let shell = match &step.run.shell {
             Some(s) => s.as_str(),
             None => {
@@ -161,7 +165,7 @@ impl<'a> Coordinator<'a> {
             }
         }
 
-        let output = cmd.output()?;
+        let output = cmd.output().map_err(CliError::from)?;
 
         if !output.stdout.is_empty() {
             print!("{}", String::from_utf8_lossy(&output.stdout));
@@ -171,12 +175,10 @@ impl<'a> Coordinator<'a> {
         }
 
         if !output.status.success() {
-            return Err(format!(
-                "Step '{}' failed with exit code: {:?}",
-                step.id,
-                output.status.code()
-            )
-            .into());
+            return Err(CliError::StepFailed {
+                step_id: step.id.clone(),
+                exit_code: output.status.code().unwrap_or(1),
+            });
         }
 
         Ok(())

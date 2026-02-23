@@ -590,7 +590,24 @@ fn run_step_failure_propagates() {
         .arg("step-fail")
         .assert()
         .failure()
+        .code(1)
         .stderr(predicate::str::contains("Step 'fail' failed"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_step_failure_forwards_exit_code() {
+    let tmp = setup_mici_home(&[("exit-code.yml", &fixture("valid_step_exit_code.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .arg("exit-code")
+        .assert()
+        .failure()
+        .code(42)
+        .stderr(predicate::str::contains(
+            "Step 'specific-exit' failed with exit code: 42",
+        ));
 }
 
 #[test]

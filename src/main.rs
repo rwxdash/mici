@@ -281,7 +281,18 @@ fn run_dynamic_command(args: &[String], opts: &mut Options) -> miette::Result<()
     let context = ExecutionContext::new(&cmd, &matches);
     let coordinator = Coordinator::with_context(context);
 
-    coordinator.run().map_err(CliError::from)?;
+    if let Err(e) = coordinator.run() {
+        match e {
+            CliError::StepFailed {
+                ref step_id,
+                exit_code,
+            } => {
+                eprintln!("Step '{}' failed with exit code: {}", step_id, exit_code);
+                std::process::exit(exit_code);
+            }
+            _ => return Err(e.into()),
+        }
+    }
 
     Ok(())
 }
