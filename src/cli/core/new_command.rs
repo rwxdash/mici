@@ -34,7 +34,7 @@ impl NewCommand {
                 usage: "
     mici new             # Prompts for creating a new command
     mici new deploy      # Creates a command without prompting at given path
-                        # (i.e., .../deploy.yml)
+                         # (i.e., .../deploy.yml)
                 ",
             },
         }
