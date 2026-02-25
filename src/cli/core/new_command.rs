@@ -131,6 +131,8 @@ usage: "{usage}"
 #           [Optional]  default: null
 #           Working directory for command execution
 #           Defaults to directory where command is invoked
+#           Supports @{inputs.*} variable substitution
+#           e.g., working_directory: "/projects/@{inputs.project}"
 #
 configuration:
   confirm: {confirm}
@@ -223,6 +225,7 @@ inputs:
 #         working_directory: String
 #           [Optional]  default: configuration.working_directory
 #           Override working directory for this step only
+#           Supports @{inputs.*} variable substitution
 #         command: String
 #           [Required if no script]
 #           Inline command to execute
