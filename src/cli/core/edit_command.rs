@@ -32,7 +32,7 @@ impl EditCommand {
                 ",
                 usage: "
     mici edit project deploy     # Opens `.../project/deploy.yml` command
-                                # in the default editor
+                                 # in the default editor
                 ",
             },
         }

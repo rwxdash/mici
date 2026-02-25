@@ -1,0 +1,20 @@
+version: "1.0"
+name: "workdir-test"
+description: "Tests working_directory with input resolution"
+
+configuration:
+  working_directory: "@{inputs.target-dir}"
+
+inputs:
+  target-dir:
+    type: string
+    description: "Target directory to run in"
+    required: true
+    short: -d
+    long: --target-dir
+
+steps:
+  - id: "print_cwd"
+    name: "Print current working directory"
+    run:
+      command: "pwd"

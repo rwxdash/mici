@@ -83,6 +83,28 @@ pub enum CommandError {
         provided: String,
         expected: String,
     },
+
+    #[error("{error_count} working directory error(s)")]
+    #[diagnostic(code(mici::runtime::working_directory_errors))]
+    WorkingDirectoryErrors {
+        #[related]
+        errors: Vec<WorkingDirectoryError>,
+        error_count: usize,
+    },
+}
+
+#[derive(Error, Debug, Diagnostic)]
+#[error("Working directory '{resolved}' does not exist or is not a directory")]
+#[diagnostic(
+    code(mici::runtime::working_directory_not_found),
+    help("Check that the directory exists or verify the input value passed via the CLI")
+)]
+pub struct WorkingDirectoryError {
+    #[source_code]
+    pub src: NamedSource<String>,
+    #[label("this resolved to '{resolved}'")]
+    pub span: SourceSpan,
+    pub resolved: String,
 }
 
 #[derive(Error, Debug, Diagnostic)]
