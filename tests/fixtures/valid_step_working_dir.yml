@@ -1,0 +1,39 @@
+version: "1.0"
+name: "step-workdir-test"
+description: "Tests step-level working_directory with input resolution"
+
+configuration:
+  confirm: false
+
+inputs:
+  target-dir:
+    type: string
+    description: "Target directory to run in"
+    required: true
+    short: -d
+    long: --target-dir
+  other-dir:
+    type: string
+    description: "Another directory"
+    required: true
+    short: -o
+    long: --other-dir
+
+steps:
+  - id: "first_step"
+    name: "First step with its own working directory"
+    run:
+      working_directory: "@{inputs.other-dir}"
+      command: "echo first"
+
+  - id: "print_cwd"
+    name: "Print current working directory"
+    run:
+      working_directory: "@{inputs.target-dir}"
+      command: "pwd"
+
+  - id: "third_step"
+    name: "Third step with its own working directory"
+    run:
+      working_directory: "@{inputs.other-dir}"
+      command: "echo third"

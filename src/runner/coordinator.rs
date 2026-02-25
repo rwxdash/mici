@@ -1,6 +1,9 @@
 use crate::{
     cli::schemas::v1::{CommandSchemaStep, CommandSchemaStepRunExecution},
-    errors::cli::CliError,
+    errors::{
+        cli::CliError,
+        command::{CommandError, WorkingDirectoryError},
+    },
     runner::context::ExecutionContext,
     utils::{
         fs::get_scripts_folder,
@@ -8,6 +11,7 @@ use crate::{
     },
 };
 use dialoguer::{Confirm, theme::ColorfulTheme};
+use miette::NamedSource;
 use std::{io::IsTerminal, process::Command};
 
 pub struct Coordinator<'a> {
@@ -73,6 +77,8 @@ impl<'a> Coordinator<'a> {
             }
         }
 
+        self.validate_working_directories()?;
+
         tracing::info!("Executing {} steps", self.context.command.steps.len());
 
         for (index, step) in self.context.command.steps.iter().enumerate() {
@@ -90,6 +96,82 @@ impl<'a> Coordinator<'a> {
 
         tracing::info!("Done!");
         Ok(())
+    }
+
+    /// Validate all working directories (config-level + every step) before execution.
+    /// Collects all errors and reports them together via miette.
+    fn validate_working_directories(&self) -> Result<(), CliError> {
+        let inputs = self.context.command.inputs_or_empty();
+        let mut errors: Vec<WorkingDirectoryError> = Vec::new();
+
+        let yaml_content = std::fs::read_to_string(&self.context.command_file_path).ok();
+        let path_str = self.context.command_file_path.display().to_string();
+
+        // Check config-level working_directory
+        if let Some(command_wd) = &self.context.command.configuration.working_directory {
+            let resolved = resolve_input_variables(command_wd, inputs, self.context.matches);
+            if !std::path::Path::new(&resolved).is_dir()
+                && let Some(e) = Self::build_wd_error(&yaml_content, &path_str, &resolved, None)
+            {
+                errors.push(e);
+            }
+        }
+
+        // Check step-level working_directories
+        for step in &self.context.command.steps {
+            if let Some(step_wd) = &step.run.working_directory {
+                let resolved = resolve_input_variables(step_wd, inputs, self.context.matches);
+                if !std::path::Path::new(&resolved).is_dir()
+                    && let Some(e) =
+                        Self::build_wd_error(&yaml_content, &path_str, &resolved, Some(&step.id))
+                {
+                    errors.push(e);
+                }
+            }
+        }
+
+        if !errors.is_empty() {
+            let error_count = errors.len();
+            return Err(CliError::Command(CommandError::WorkingDirectoryErrors {
+                errors,
+                error_count,
+            }));
+        }
+
+        Ok(())
+    }
+
+    /// Build a single `WorkingDirectoryError` with miette span pointing at the YAML key.
+    /// `search_after`: `None` for config-level, `Some(step_id)` for step-level.
+    fn build_wd_error(
+        yaml_content: &Option<String>,
+        path_str: &str,
+        resolved: &str,
+        search_after: Option<&str>,
+    ) -> Option<WorkingDirectoryError> {
+        let content = yaml_content.as_ref()?;
+
+        let search_start = match search_after {
+            Some(step_id) => content
+                .find(&format!("id: \"{}\"", step_id))
+                .or_else(|| content.find(&format!("id: '{}'", step_id)))
+                .or_else(|| content.find(&format!("id: {}", step_id)))
+                .unwrap_or(0),
+            None => 0,
+        };
+
+        let relative_offset = content[search_start..].find("working_directory:")?;
+        let offset = search_start + relative_offset;
+        let line_end = content[offset..]
+            .find('\n')
+            .map(|i| offset + i)
+            .unwrap_or(content.len());
+
+        Some(WorkingDirectoryError {
+            src: NamedSource::new(path_str, content.clone()),
+            span: (offset, line_end - offset).into(),
+            resolved: resolved.to_string(),
+        })
     }
 
     fn execute_step(&self, step: &CommandSchemaStep) -> Result<(), CliError> {
@@ -138,13 +220,15 @@ impl<'a> Coordinator<'a> {
             }
         };
 
-        // Set Working Directories
+        // Set Working Directories (already validated in validate_working_directories)
         if let Some(command_wd) = &self.context.command.configuration.working_directory {
-            cmd.current_dir(command_wd);
+            let resolved_wd = resolve_input_variables(command_wd, inputs, self.context.matches);
+            cmd.current_dir(&resolved_wd);
         }
 
         if let Some(step_wd) = &step.run.working_directory {
-            cmd.current_dir(step_wd);
+            let resolved_wd = resolve_input_variables(step_wd, inputs, self.context.matches);
+            cmd.current_dir(&resolved_wd);
         }
 
         // Set Environment Variables

@@ -8,10 +8,15 @@ pub struct ExecutionContext<'a> {
     pub current_directory: PathBuf,
     pub matches: &'a getopts::Matches,
     pub command: &'a CommandSchema,
+    pub command_file_path: PathBuf,
 }
 
 impl<'a> ExecutionContext<'a> {
-    pub fn new(command: &'a CommandSchema, matches: &'a getopts::Matches) -> Self {
+    pub fn new(
+        command: &'a CommandSchema,
+        matches: &'a getopts::Matches,
+        command_file_path: PathBuf,
+    ) -> Self {
         let os_environment = std::env::vars_os().collect();
         let current_directory = std::env::current_dir().unwrap();
 
@@ -20,6 +25,7 @@ impl<'a> ExecutionContext<'a> {
             current_directory,
             matches,
             command,
+            command_file_path,
         }
     }
 }

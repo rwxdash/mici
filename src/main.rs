@@ -324,7 +324,7 @@ fn run_dynamic_command(args: &[String], opts: &mut Options) -> miette::Result<()
         v1::validate_inputs(inputs, &matches)?;
     }
 
-    let context = ExecutionContext::new(&cmd, &matches);
+    let context = ExecutionContext::new(&cmd, &matches, command_file_path.clone());
     let coordinator = Coordinator::with_context(context);
 
     if let Err(e) = coordinator.run() {

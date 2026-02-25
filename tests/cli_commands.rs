@@ -820,6 +820,221 @@ fn run_auto_input_env_uses_defaults() {
         .stdout(predicate::str::contains("fallback"));
 }
 
+// ─── Run: working directory ───
+
+#[cfg(unix)]
+#[test]
+fn run_with_working_directory_input_resolution() {
+    let tmp = setup_mici_home(&[("workdir.yml", &fixture("valid_working_dir.yml"))]);
+
+    let target_dir = tmp.path().join("my-project");
+    std::fs::create_dir_all(&target_dir).unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["workdir", "--target-dir", target_dir.to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_with_working_directory_input_resolution() {
+    let tmp = setup_mici_home(&[("workdir.yml", &fixture("valid_working_dir_windows.yml"))]);
+
+    let target_dir = tmp.path().join("my-project");
+    std::fs::create_dir_all(&target_dir).unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args(["workdir", "--target-dir", target_dir.to_str().unwrap()])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_with_step_working_directory_input_resolution() {
+    let tmp = setup_mici_home(&[("step-workdir.yml", &fixture("valid_step_working_dir.yml"))]);
+
+    let target_dir = tmp.path().join("step-project");
+    let other_dir = tmp.path().join("other-project");
+    std::fs::create_dir_all(&target_dir).unwrap();
+    std::fs::create_dir_all(&other_dir).unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            target_dir.to_str().unwrap(),
+            "--other-dir",
+            other_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_with_step_working_directory_input_resolution() {
+    let tmp = setup_mici_home(&[(
+        "step-workdir.yml",
+        &fixture("valid_step_working_dir_windows.yml"),
+    )]);
+
+    let target_dir = tmp.path().join("step-project");
+    let other_dir = tmp.path().join("other-project");
+    std::fs::create_dir_all(&target_dir).unwrap();
+    std::fs::create_dir_all(&other_dir).unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            target_dir.to_str().unwrap(),
+            "--other-dir",
+            other_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_with_invalid_working_directory() {
+    let tmp = setup_mici_home(&[("workdir.yml", &fixture("valid_working_dir.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "workdir",
+            "--target-dir",
+            "/nonexistent/path/that/does/not/exist",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_with_invalid_working_directory() {
+    let tmp = setup_mici_home(&[("workdir.yml", &fixture("valid_working_dir_windows.yml"))]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "workdir",
+            "--target-dir",
+            "C:\\nonexistent\\path\\that\\does\\not\\exist",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_with_invalid_step_working_directory_points_to_correct_step() {
+    let tmp = setup_mici_home(&[("step-workdir.yml", &fixture("valid_step_working_dir.yml"))]);
+
+    let other_dir = tmp.path().join("other-project");
+    std::fs::create_dir_all(&other_dir).unwrap();
+
+    // first_step and third_step have valid other-dir, but print_cwd has invalid target-dir
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            "/nonexistent/path",
+            "--other-dir",
+            other_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"))
+        .stderr(predicate::str::contains("@{inputs.target-dir}"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_with_invalid_step_working_directory_points_to_correct_step() {
+    let tmp = setup_mici_home(&[(
+        "step-workdir.yml",
+        &fixture("valid_step_working_dir_windows.yml"),
+    )]);
+
+    let other_dir = tmp.path().join("other-project");
+    std::fs::create_dir_all(&other_dir).unwrap();
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            "C:\\nonexistent\\path",
+            "--other-dir",
+            other_dir.to_str().unwrap(),
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("does not exist"))
+        .stderr(predicate::str::contains("@{inputs.target-dir}"));
+}
+
+#[cfg(unix)]
+#[test]
+fn run_with_multiple_invalid_step_working_directories_reports_all() {
+    let tmp = setup_mici_home(&[("step-workdir.yml", &fixture("valid_step_working_dir.yml"))]);
+
+    // Both target-dir and other-dir are invalid — should report errors for all 3 steps
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            "/nonexistent/target",
+            "--other-dir",
+            "/nonexistent/other",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("3 working directory error(s)"))
+        .stderr(predicate::str::contains("@{inputs.target-dir}"))
+        .stderr(predicate::str::contains("@{inputs.other-dir}"));
+}
+
+#[cfg(windows)]
+#[test]
+fn run_with_multiple_invalid_step_working_directories_reports_all() {
+    let tmp = setup_mici_home(&[(
+        "step-workdir.yml",
+        &fixture("valid_step_working_dir_windows.yml"),
+    )]);
+
+    mici()
+        .env("MICI_HOME", tmp.path())
+        .args([
+            "step-workdir",
+            "--target-dir",
+            "C:\\nonexistent\\target",
+            "--other-dir",
+            "C:\\nonexistent\\other",
+        ])
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("3 working directory error(s)"))
+        .stderr(predicate::str::contains("@{inputs.target-dir}"))
+        .stderr(predicate::str::contains("@{inputs.other-dir}"));
+}
+
 // ─── Dynamic command help ───
 
 #[test]
