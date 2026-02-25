@@ -845,13 +845,20 @@ fn run_with_working_directory_input_resolution() {
 
     let target_dir = tmp.path().join("my-project");
     std::fs::create_dir_all(&target_dir).unwrap();
+    let canonical = target_dir
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .trim_start_matches("\\\\?\\")
+        .to_string();
 
     mici()
         .env("MICI_HOME", tmp.path())
         .args(["workdir", "--target-dir", target_dir.to_str().unwrap()])
         .assert()
         .success()
-        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+        .stdout(predicate::str::contains(&canonical));
 }
 
 #[cfg(unix)]
@@ -890,6 +897,13 @@ fn run_with_step_working_directory_input_resolution() {
     let other_dir = tmp.path().join("other-project");
     std::fs::create_dir_all(&target_dir).unwrap();
     std::fs::create_dir_all(&other_dir).unwrap();
+    let canonical = target_dir
+        .canonicalize()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .trim_start_matches("\\\\?\\")
+        .to_string();
 
     mici()
         .env("MICI_HOME", tmp.path())
@@ -902,7 +916,7 @@ fn run_with_step_working_directory_input_resolution() {
         ])
         .assert()
         .success()
-        .stdout(predicate::str::contains(target_dir.to_str().unwrap()));
+        .stdout(predicate::str::contains(&canonical));
 }
 
 #[cfg(unix)]
