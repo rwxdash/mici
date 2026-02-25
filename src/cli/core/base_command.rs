@@ -80,6 +80,89 @@ pub struct InitConfiguration {
     pub log_level: Option<LogLevel>,
 }
 
+impl InitConfiguration {
+    pub fn format_config_yaml(&self) -> String {
+        let format_optional = |val: &Option<String>| match val {
+            Some(v) => format!("\"{}\"", v),
+            None => "null".to_string(),
+        };
+
+        let format_bool = |val: &Option<bool>| match val {
+            Some(true) => "true".to_string(),
+            Some(false) => "false".to_string(),
+            None => "false".to_string(),
+        };
+
+        format!(
+            r#"##  ==================================================
+##  mici Configuration
+##  Global settings for all mici commands
+##  ==================================================
+
+##  Upstream Repository
+#
+#   upstream_url: String
+#         [Optional]  default: null
+#         Git repository URL where your commands are stored
+#         Used by `mici fetch` to pull commands from a remote
+#   upstream_cmd_path: String
+#         [Optional]  default: null
+#         Path to the commands directory within the repository
+#
+upstream_url: {upstream_url}
+upstream_cmd_path: {upstream_cmd_path}
+
+##  Terminal Settings
+#
+#   disable_cli_color: bool
+#         [Optional]  default: false
+#         Disable colored output in the terminal
+#   disable_pager: bool
+#         [Optional]  default: false
+#         Disable the pager for long output (e.g., help text)
+#
+disable_cli_color: {disable_cli_color}
+disable_pager: {disable_pager}
+
+##  Logging
+#
+#   log_timer: String
+#         [Optional]  default: "wallclock"
+#         Timer style for tracing log output
+#         Options:
+#           "wallclock" - Full timestamps (e.g., 2026-02-23T14:30:00Z)
+#           "uptime"    - Time since process start (e.g., 0.003s)
+#           "none"      - No timestamps in log output
+#   log_level: String
+#         [Optional]  default: "info"
+#         Minimum log level for tracing output
+#         Options:
+#           "trace" - Most verbose, includes all messages
+#           "debug" - Detailed diagnostic messages
+#           "info"  - General informational messages
+#           "warn"  - Warning messages only
+#           "error" - Error messages only
+#           "off"   - Suppress all log output (silent mode)
+#
+log_timer: {log_timer}
+log_level: {log_level}
+"#,
+            upstream_url = format_optional(&self.upstream_url),
+            upstream_cmd_path = format_optional(&self.upstream_cmd_path),
+            disable_cli_color = format_bool(&self.disable_cli_color),
+            disable_pager = format_bool(&self.disable_pager),
+            log_timer = self
+                .log_timer
+                .as_ref()
+                .map_or("wallclock".to_string(), |t| t.to_string()),
+            log_level = self
+                .log_level
+                .as_ref()
+                .map_or("info".to_string(), |l| l.to_string()),
+        )
+    }
+}
+
 impl Serialize for InitConfiguration {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

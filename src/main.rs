@@ -105,6 +105,16 @@ fn run() -> miette::Result<()> {
                 None
             }
         }
+    } else if args.get(1).is_some_and(|cmd| cmd != "init") {
+        // Auto-create config.yml with defaults if it doesn't exist
+        // Skip for `init` (has its own interactive setup) and no-args (shows "try init" message)
+        let default_config = InitConfiguration::default();
+        let config_yaml = default_config.format_config_yaml();
+        if let Some(parent) = config_file.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        let _ = fs::write(&config_file, &config_yaml);
+        Some(default_config)
     } else {
         None
     };

@@ -1,4 +1,4 @@
-use crate::cli::core::base_command::BaseCommand;
+use crate::cli::core::base_command::{BaseCommand, InitConfiguration};
 use crate::utils::fs::*;
 use std::env;
 use std::error::Error;
@@ -32,6 +32,15 @@ impl ConfigCommand {
 
     pub fn run(&self) -> Result<(), Box<dyn Error>> {
         let config_file = get_config_file();
+
+        // Auto-create config.yml with defaults if it doesn't exist
+        if !config_file.exists() {
+            if let Some(parent) = config_file.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            let default_config = InitConfiguration::default();
+            std::fs::write(&config_file, default_config.format_config_yaml())?;
+        }
 
         // Get the editor from environment variable, fallback to sensible defaults
         let editor = env::var("EDITOR")

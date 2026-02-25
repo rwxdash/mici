@@ -2,8 +2,13 @@ use std::fs;
 use std::path::Path;
 use tempfile::TempDir;
 
-/// Create a temporary .mici directory structure with a config file and optional command files.
-pub fn setup_mici_home(commands: &[(&str, &str)]) -> TempDir {
+/// Create a temporary .mici directory structure with config, command fixtures, and optional scripts.
+///
+/// `fixtures` — list of fixture file names from `tests/fixtures/`. Each is written to the
+/// commands dir with the same filename. The command name is the filename without `.yml`.
+///
+/// `scripts` — list of `(name, content)` tuples for script files. Pass `&[]` when no scripts.
+pub fn setup_mici_home(fixtures: &[&str], scripts: &[(&str, &str)]) -> TempDir {
     let tmp = TempDir::new().expect("Failed to create temp dir");
     let mici_dir = tmp.path().join(".mici");
     let commands_dir = mici_dir.join("jobs").join("commands");
@@ -16,12 +21,13 @@ pub fn setup_mici_home(commands: &[(&str, &str)]) -> TempDir {
     let config_path = mici_dir.join("config.yml");
     fs::write(
         &config_path,
-        "upstream_url: null\nupstream_cmd_path: null\ndisable_cli_color: false\ndisable_pager: true\n",
+        "upstream_url: null\nupstream_cmd_path: null\ndisable_cli_color: false\ndisable_pager: true\nlog_timer: wallclock\nlog_level: info\n",
     )
     .unwrap();
 
-    // Write command files
-    for (name, content) in commands {
+    // Write command fixture files
+    for name in fixtures {
+        let content = fixture(name);
         let cmd_path = commands_dir.join(name);
         if let Some(parent) = cmd_path.parent() {
             fs::create_dir_all(parent).unwrap();
@@ -29,17 +35,7 @@ pub fn setup_mici_home(commands: &[(&str, &str)]) -> TempDir {
         fs::write(&cmd_path, content).unwrap();
     }
 
-    tmp
-}
-
-/// Create a temporary .mici directory with command files and script files.
-pub fn setup_mici_home_with_scripts(
-    commands: &[(&str, &str)],
-    scripts: &[(&str, &str)],
-) -> TempDir {
-    let tmp = setup_mici_home(commands);
-    let scripts_dir = tmp.path().join(".mici").join("jobs").join("scripts");
-
+    // Write script files
     for (name, content) in scripts {
         let script_path = scripts_dir.join(name);
         if let Some(parent) = script_path.parent() {
